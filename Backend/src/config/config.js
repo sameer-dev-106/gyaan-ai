@@ -28,5 +28,6 @@ export const config = {
     GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL,
     BASE_URL: process.env.BASE_URL,
     FRONTEND_URL: process.env.FRONTEND_URL,
-    GEMINI_API_KEY: process.env.GEMINI_API_KEY
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+    MISTRAL_API_KEY: process.env.MISTRAL_API_KEY
 }
