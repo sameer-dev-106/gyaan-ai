@@ -22,14 +22,14 @@ export async function sendMessage(req, res, next) {
         const userMessage = await messageModel.create({
             chat: chatId || chat._id,
             content: message,
-            role: user,
+            role: "user",
         });
-        const messages = await messageModel.find({ chat: chatId });
+        const messages = await messageModel.find({ chat: chatId || chat._id});
         const result = await generateResponse(messages);
         const aiMessage = await messageModel.create({
             chat: chatId || chat._id,
             content: result,
-            role: ai,
+            role: "ai",
         });
         res.status(201).json({
             title,
@@ -52,7 +52,7 @@ export async function getChats(req, res, next) {
         const chat = await chatModel.find({ user: user.id });
         res.status(200).json({
             message: "Chat retrieved successfully.",
-            chats
+            chat
         })
     } catch (err) {
         next(err);
