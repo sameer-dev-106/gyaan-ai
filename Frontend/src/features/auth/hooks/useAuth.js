@@ -1,15 +1,15 @@
 import { useDispatch } from "react-redux";
 import { registerApi, loginApi, getMeApi, logoutApi } from "../services/auth.api";
-import { setUser, setLoading, setError } from "../auth.slice";
+import { setUser, setLoading, setError, setInitialized } from "../auth.slice";
 
 export const useAuth = () => {
 
     const dispatch = useDispatch()
 
     const handleRegister = async ({username, email, password}) => {
+        dispatch(setLoading(true));
         try {
-            dispatch(setLoading(true))
-            const response = await registerApi(username, email, password)
+            const response = await registerApi(username, email, password);
             const user = response?.data?.user;
             if (user) dispatch(setUser(user));
             return { success: true, user: user };
@@ -47,6 +47,7 @@ export const useAuth = () => {
             return null
         } finally {
             dispatch(setLoading(false))
+            dispatch(setInitialized(true))
         }
     }
 
