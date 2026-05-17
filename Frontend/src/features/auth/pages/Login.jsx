@@ -26,7 +26,7 @@ const Login = () => {
       setErrors({ form: error });
       return;
     }
-    console.log("Login page:-", user)
+    console.log("Login page:-", user);
     navigate("/");
   };
 
@@ -44,7 +44,7 @@ const Login = () => {
         <div className={styles.formWrapper}>
           <div className={styles.heading}>
             <h1>Welcome back</h1>
-            <p>Sign in to your Perplexity account</p>
+            <p>Sign in to your Gyaan AI account</p>
           </div>
 
           <div className={styles.oauthRow}>
