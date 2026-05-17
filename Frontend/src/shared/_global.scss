@@ -1,10 +1,16 @@
+@use "./assets/variables" as *;
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html, body {
-  height: 100%;
+html,
+body,
+#root {
   width: 100%;
+  font-family: $font;
+  color: $text-white;
+  background: $bg-deep;
 }
