@@ -17,7 +17,7 @@ export const generateResponse = async (messages) => {
     try {
         const response = await geminiModel.invoke(messages.map(msg => {
             if (msg.role == "user") {
-                return new HumanMessage(msg, content);
+                return new HumanMessage(msg.content);
             } else if (msg.role == "ai") {
                 return new AIMessage(msg.content);
             }
@@ -25,7 +25,7 @@ export const generateResponse = async (messages) => {
         return response.text;
     } catch (error) {
         console.error("Error generating Gemini AI response:", error);
-        throw new Error("Failed to generate Gemini AI response");
+        // throw new Error("Failed to generate Gemini AI response");
     }
 }
 
