@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { sendMessage } from "../controllers/chat.controller.js";
+import { sendMessage, getChats, getMessages, deleteChat } from "../controllers/chat.controller.js";
 import { authUser } from "../middlewares/auth.middleware.js";
 import { get } from "mongoose";
 
