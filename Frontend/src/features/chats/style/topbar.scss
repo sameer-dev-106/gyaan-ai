@@ -1,0 +1,86 @@
+// TOPBAR
+.topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    flex-shrink: 0;
+
+    .topbar-title {
+        flex: 1;
+        font-size: 15px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+}
+
+.topbar-sidebar-btn {
+    position: relative;
+
+    .icon-slot {
+        position: relative;
+        width: 18px;
+        height: 18px;
+
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 18px;
+            height: 18px;
+            transition:
+                opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    }
+
+    .icon-sparkles {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+        color: #e53e3e;
+    }
+
+    .icon-panel {
+        opacity: 0;
+        transform: scale(0.55) rotate(-15deg);
+    }
+
+    &:hover {
+        .icon-sparkles {
+            opacity: 0;
+            transform: scale(0.55) rotate(20deg);
+        }
+
+        .icon-panel {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+        }
+    }
+}
+
+// Desktop: sidebar open hone ke baad toggle button hide karo
+@media (min-width: 769px) {
+    .sidebar-open .topbar .topbar-sidebar-btn {
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+
+// Mobile: topbar aur button hamesha dikhta rahe
+@media (max-width: 768px) {
+    .topbar {
+        display: flex !important;
+    }
+
+    .sidebar-open .topbar .topbar-sidebar-btn {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+
+    .chatSection {
+        width: 100%;
+        flex: 1;
+    }
+}
