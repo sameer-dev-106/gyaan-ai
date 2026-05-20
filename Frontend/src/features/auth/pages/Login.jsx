@@ -5,6 +5,7 @@ import { useAuth } from "../hooks/useAuth";
 import styles from "../style/auth.module.scss";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import { GoogleIcon } from "../icons/Auth.icons";
+import AuthLeft from "../components/AuthLeft";
 
 const Login = () => {
   const { handleLogin } = useAuth();
@@ -36,7 +37,15 @@ const Login = () => {
 
   return (
     <div className={styles.authPage}>
-      {/* <AuthLeft /> */}
+      <AuthLeft
+        title="Learn smarter, not harder."
+        subtitle="Gyaan AI gives you personalized AI-powered learning — built around how your mind works."
+        features={[
+          "AI tutors that adapt to your pace",
+          "Smart quizzes & instant feedback",
+          "Track progress across every subject",
+        ]}
+      />
 
       <div className={styles.rightPanel}>
         <div className={styles.mobileLogo}></div>
