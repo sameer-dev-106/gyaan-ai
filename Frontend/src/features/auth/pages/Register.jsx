@@ -6,6 +6,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useSelector } from "react-redux";
 import { GoogleIcon } from "../icons/Auth.icons";
 import { getPasswordStrength } from "../utils/auth.utils";
+import AuthLeft from "../components/AuthLeft";
 
 const Register = () => {
   const { handleRegister } = useAuth();
@@ -21,10 +22,6 @@ const Register = () => {
 
   const strength = getPasswordStrength(password);
 
-      console.log("username", username);
-      console.log("email", email);
-      console.log("password", password);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
@@ -34,14 +31,20 @@ const Register = () => {
       return;
     }
 
-
-
     navigate("/login");
   };
 
   return (
     <div className={styles.authPage}>
-      {/* <AuthLeft /> */}
+      <AuthLeft
+        title="Your AI learning journey starts here."
+        subtitle="Join thousands of students using Gyaan AI to master any subject — faster, smarter, and with confidence."
+        features={[
+          "Personalized study plans",
+          "AI-powered explanations on demand",
+          "Progress insights & achievements",
+        ]}
+      />
 
       <div className={styles.rightPanel}>
         <div className={styles.mobileLogo}></div>
