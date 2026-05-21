@@ -5,7 +5,10 @@ let io;
 export function initSocket(httpServer) {
     io = new Server(httpServer, {
         cors: {
-            origin: "http://localhost:5173",
+            origin: [
+                "http://localhost:5173",
+                "https://gyaan-ai-epi0.onrender.com"
+            ],
             credentials: true,
         }
     });
