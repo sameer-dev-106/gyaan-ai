@@ -14,7 +14,12 @@ const MessagesSection = ({
       {!currentChatId && <EmptyState />}
 
       {chats[currentChatId]?.messages?.map((msg, idx) => (
-        <MessageItem key={idx} msg={msg} />
+        <MessageItem
+          key={idx}
+          msg={msg}
+          msgIndex={idx}
+          currentChatId={currentChatId}
+        />
       ))}
 
       {isLoading && <TypingIndicator />}
