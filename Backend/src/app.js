@@ -33,7 +33,7 @@ app.use(express.static(path.join(__dirname, "../public")));
 
 // Health check route
 app.get("/", (req, res) => {
-    res.json({message: "server is running"});
+    res.json({ message: "server is running" });
 });
 
 // Routes
