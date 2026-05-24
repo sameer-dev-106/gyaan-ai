@@ -41,9 +41,10 @@ app.use("/api/auth", authRouter);
 app.use("/api/chats", chatRouter);
 
 // Frontend
-app.get("*", (req, res) => {
+app.get("/{*splat}", (req, res) => {
     res.sendFile(path.join(__dirname, "../public", "index.html"));
 });
+
 
 // Error handling middleware
 app.use(handleError);
