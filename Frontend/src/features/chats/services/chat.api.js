@@ -7,7 +7,7 @@ const API = axios.create({
     withCredentials: true,
 });
 
-export const sendMessageApi = async ({message, chatId}) => {
+export const sendMessageApi = async ({ message, chatId }) => {
     try {
         const response = await API.post("/message", { message, chat: chatId });
         console.log(response)
@@ -35,7 +35,7 @@ export const getMessagesApi = async (chatId) => {
     }
 }
 
-export const deleteChatApi = async ({chatId}) => {
+export const deleteChatApi = async ({ chatId }) => {
     try {
         const response = await API.delete(`/delete/${chatId}`);
         return { success: true, data: response.data };

@@ -7,7 +7,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 export const initializeSocketConnection = () => {
     if (socket?.connected) return socket;
     socket = io(BACKEND_URL, {
-        withCredentials:true
+        withCredentials: true
     });
     socket.on("connect", () => {
         console.log("✅ Socket connected:", socket.id);

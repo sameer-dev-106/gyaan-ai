@@ -27,7 +27,6 @@ const Login = () => {
       setErrors({ form: error });
       return;
     }
-    console.log("Login page:-", user);
     navigate("/");
   };
 

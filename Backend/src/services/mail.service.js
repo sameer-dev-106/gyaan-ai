@@ -18,7 +18,7 @@ transporter.verify().then(() => {
     console.error("Error setting up email transporter:", err);
 });
 
-export async function sendEmail({to, subject, html, text}) {
+export async function sendEmail({ to, subject, html, text }) {
 
     const mailOptions = {
         from: config.GOOGLE_USER_EMAIL,

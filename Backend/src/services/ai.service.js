@@ -41,9 +41,7 @@ export const generateResponseStream = async (messages, onChunk) => {
     try {
         const langchainMessages = buildMessages(messages);
         let fullText = "";
-
         const stream = await mistralModel.stream(langchainMessages);
-
         for await (const chunk of stream) {
             const text = chunk.content;
             if (typeof text === "string" && text) {
@@ -51,21 +49,17 @@ export const generateResponseStream = async (messages, onChunk) => {
                 onChunk(text);
             }
         }
-
         if (!fullText.trim()) {
             console.log("Stream empty — falling back to agent.invoke() for tool use");
             const result = await agent.invoke({ messages: langchainMessages });
             const finalMsg = result.messages[result.messages.length - 1];
             fullText = finalMsg.content || finalMsg.text || "";
-            if (fullText) onChunk(fullText); // ek saath bhejo
+            if (fullText) onChunk(fullText); 
         }
-
         if (!fullText.trim()) {
             throw new Error("AI returned empty response");
         }
-
         return fullText;
-
     } catch (err) {
         console.error("generateResponseStream error:", err);
         throw new Error("Failed to generate AI response: " + err.message);
