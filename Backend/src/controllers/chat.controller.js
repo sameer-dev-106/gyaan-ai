@@ -1,7 +1,13 @@
 import { generateChatTitle, generateResponseStream } from "../services/ai.service.js";
 import chatModel from "../models/chat.model.js";
 import messageModel from "../models/message.model.js";
+import userModel from "../models/user.model.js";
 import { getIo } from "../socket/server.socket.js";
+
+// Rough token estimator (~4 chars per token)
+function estimateTokens(text) {
+    return Math.ceil((text || "").length / 4);
+}
 
 /**
  * @route POST /api/chats/message
@@ -14,42 +20,78 @@ export async function sendMessage(req, res, next) {
         const { message, chat: chatId } = req.body;
         const userId = req.user.id;
         const io = getIo();
+
+        // ── Token limit check ─────────────────────────────
+        const user = await userModel.findById(userId);
+        user.checkAndResetDailyTokens();
+
+        const tokensLeft = user.tokenLimit - user.tokensUsed;
+        if (tokensLeft <= 0) {
+            await user.save();
+            return res.status(429).json({
+                success: false,
+                message: "Daily token limit reached. Please wait 24 hours or upgrade your plan.",
+                tokensUsed: user.tokensUsed,
+                tokenLimit: user.tokenLimit,
+            });
+        }
+        // ─────────────────────────────────────────────────
+
         let newChat = null;
         if (!chatId) {
             const title = await generateChatTitle(message);
             newChat = await chatModel.create({ user: userId, title });
         }
         const resolvedChatId = chatId || newChat._id.toString();
+
         await messageModel.create({
             chat: resolvedChatId,
             content: message,
             role: "user",
         });
+
         const messages = await messageModel.find({ chat: resolvedChatId });
+
         res.status(201).json({
             success: true,
             chatId: resolvedChatId,
             chat: newChat ? { _id: newChat._id, title: newChat.title } : null,
         });
+
         io.to(userId).emit("ai:stream:start", {
             chatId: resolvedChatId,
             newChat: newChat ? { _id: newChat._id, title: newChat.title } : null,
             userMessage: message,
         });
+
         let fullResponse = "";
         try {
             fullResponse = await generateResponseStream(messages, (chunk) => {
                 io.to(userId).emit("ai:chunk", { chatId: resolvedChatId, chunk });
             });
+
             if (!fullResponse.trim()) {
                 throw new Error("AI returned empty response");
             }
+
             await messageModel.create({
                 chat: resolvedChatId,
                 content: fullResponse,
                 role: "ai",
             });
-            io.to(userId).emit("ai:stream:end", { chatId: resolvedChatId });
+
+            // ── Track tokens used ──────────────────────────
+            const tokensConsumed = estimateTokens(message) + estimateTokens(fullResponse);
+            user.tokensUsed = Math.min(user.tokensUsed + tokensConsumed, user.tokenLimit);
+            await user.save();
+            // ─────────────────────────────────────────────
+
+            io.to(userId).emit("ai:stream:end", {
+                chatId: resolvedChatId,
+                tokensUsed: user.tokensUsed,
+                tokenLimit: user.tokenLimit,
+            });
+
         } catch (streamErr) {
             console.error("Streaming error:", streamErr);
             io.to(userId).emit("ai:stream:error", {
