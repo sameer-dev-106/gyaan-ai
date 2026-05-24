@@ -8,6 +8,7 @@ const chatSlice = createSlice({
         isLoading: false,
         isStreaming: false,
         error: null,
+        tokenLimitError: false,
     },
     reducers: {
         createNewChat: (state, action) => {
@@ -69,17 +70,33 @@ const chatSlice = createSlice({
         setError: (state, action) => {
             state.error = action.payload;
         },
+        setTokenLimitError: (state, action) => {
+            state.tokenLimitError = action.payload;
+        },
         deleteChat: (state, action) => {
             const chatId = action.payload;
             delete state.chats[chatId];
+            // Agar current chat delete ho to null set karo, new chat empty state dikhaye
             if (state.currentChatId === chatId) {
-                const remaining = Object.keys(state.chats);
-                state.currentChatId = remaining.length > 0 ? remaining[0] : null;
+                state.currentChatId = null;
             }
         },
         clearCurrentChat: (state) => {
             state.currentChatId = null;
-        }
+        },
+        // Message-level actions
+        deleteMessage: (state, action) => {
+            const { chatId, msgIndex } = action.payload;
+            if (state.chats[chatId]) {
+                state.chats[chatId].messages.splice(msgIndex, 1);
+            }
+        },
+        updateMessage: (state, action) => {
+            const { chatId, msgIndex, content } = action.payload;
+            if (state.chats[chatId]?.messages[msgIndex]) {
+                state.chats[chatId].messages[msgIndex].content = content;
+            }
+        },
     }
 });
 
@@ -94,8 +111,11 @@ export const {
     setCurrentChatId,
     setLoading,
     setError,
+    setTokenLimitError,
     deleteChat,
-    clearCurrentChat
+    clearCurrentChat,
+    deleteMessage,
+    updateMessage,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;
