@@ -23,6 +23,7 @@ const Dashboard = () => {
 
   const user = useSelector((state) => state.auth.user);
   const isLoading = useSelector((state) => state.chat.isLoading);
+  const isStreaming = useSelector((state) => state.chat.isStreaming);
   const chats = useSelector((state) => state.chat.chats);
   const currentChatId = useSelector((state) => state.chat.currentChatId);
 
@@ -34,6 +35,10 @@ const Dashboard = () => {
     chat.initializeSocketConnection();
     chat.handleGetChats();
   }, []);
+
+  useEffect(() => {
+    chat.registerSocketEvents();
+  }, [chats]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -52,6 +57,7 @@ const Dashboard = () => {
     user,
     chats,
     isLoading,
+    isStreaming,
     currentChatId,
     currentChatIdRef,
     messagesEndRef,
@@ -67,7 +73,9 @@ const Dashboard = () => {
   };
 
   return (
-    <main className={`chatPage ${sidebarOpen ? "sidebar-open" : "sidebar-closed"}`}>
+    <main
+      className={`chatPage ${sidebarOpen ? "sidebar-open" : "sidebar-closed"}`}
+    >
       <Sidebar {...dashboardProps} />
 
       <section className="chatSection">
