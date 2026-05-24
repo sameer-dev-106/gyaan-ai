@@ -1,41 +1,62 @@
-import { generateChatTitle, generateResponse } from "../services/ai.service.js";
+import { generateChatTitle, generateResponseStream } from "../services/ai.service.js";
 import chatModel from "../models/chat.model.js";
 import messageModel from "../models/message.model.js";
+import { getIo } from "../socket/server.socket.js";
 
 /**
  * @route POST /api/chats/message
- * @desc Send a message in a chat, if chatId is not provided, a new chat will be created
+ * @desc Save user msg, return chatId immediately, then stream AI via socket
  * @access Private
- * @body { message, chat (optional) }
+ * @body { message, chat (optional chatId) }
  */
 export async function sendMessage(req, res, next) {
     try {
         const { message, chat: chatId } = req.body;
-        let title = null, chat = null;
+        const userId = req.user.id;
+        const io = getIo();
+        let newChat = null;
         if (!chatId) {
-            title = await generateChatTitle(message);
-            chat = await chatModel.create({
-                user: req.user.id,
-                title
-            });
+            const title = await generateChatTitle(message);
+            newChat = await chatModel.create({ user: userId, title });
         }
-        const userMessage = await messageModel.create({
-            chat: chatId || chat._id,
+        const resolvedChatId = chatId || newChat._id.toString();
+        await messageModel.create({
+            chat: resolvedChatId,
             content: message,
             role: "user",
         });
-        const messages = await messageModel.find({ chat: chatId || chat._id});
-        const result = await generateResponse(messages);
-        const aiMessage = await messageModel.create({
-            chat: chatId || chat._id,
-            content: result,
-            role: "ai",
-        });
+        const messages = await messageModel.find({ chat: resolvedChatId });
         res.status(201).json({
-            title,
-            chat,
-            aiMessage
+            success: true,
+            chatId: resolvedChatId,
+            chat: newChat ? { _id: newChat._id, title: newChat.title } : null,
         });
+        io.to(userId).emit("ai:stream:start", {
+            chatId: resolvedChatId,
+            newChat: newChat ? { _id: newChat._id, title: newChat.title } : null,
+            userMessage: message,
+        });
+        let fullResponse = "";
+        try {
+            fullResponse = await generateResponseStream(messages, (chunk) => {
+                io.to(userId).emit("ai:chunk", { chatId: resolvedChatId, chunk });
+            });
+            if (!fullResponse.trim()) {
+                throw new Error("AI returned empty response");
+            }
+            await messageModel.create({
+                chat: resolvedChatId,
+                content: fullResponse,
+                role: "ai",
+            });
+            io.to(userId).emit("ai:stream:end", { chatId: resolvedChatId });
+        } catch (streamErr) {
+            console.error("Streaming error:", streamErr);
+            io.to(userId).emit("ai:stream:error", {
+                chatId: resolvedChatId,
+                error: "AI response generation failed",
+            });
+        }
     } catch (err) {
         next(err);
     }
@@ -43,17 +64,11 @@ export async function sendMessage(req, res, next) {
 
 /**
  * @route GET /api/chats
- * @desc Get all chats of the logged in user
- * @access Private
  */
 export async function getChats(req, res, next) {
     try {
-        const user = req.user;
-        const chat = await chatModel.find({ user: user.id });
-        res.status(200).json({
-            message: "Chat retrieved successfully.",
-            chat
-        })
+        const chat = await chatModel.find({ user: req.user.id });
+        res.status(200).json({ message: "Chat retrieved successfully.", chat });
     } catch (err) {
         next(err);
     }
@@ -61,8 +76,6 @@ export async function getChats(req, res, next) {
 
 /**
  * @route GET /api/chats/:chatId/messages
- * @desc Get all messages in a chat
- * @access Private
  */
 export async function getMessages(req, res, next) {
     try {
@@ -70,10 +83,7 @@ export async function getMessages(req, res, next) {
         const chat = await chatModel.findOne({ _id: chatId, user: req.user.id });
         if (!chat) return res.status(404).json({ message: "chat not found" });
         const messages = await messageModel.find({ chat: chatId });
-        res.status(200).json({
-            message: "Messages retrieved successfully.",
-            messages
-        })
+        res.status(200).json({ message: "Messages retrieved successfully.", messages });
     } catch (err) {
         next(err);
     }
@@ -81,8 +91,6 @@ export async function getMessages(req, res, next) {
 
 /**
  * @route DELETE /api/chats/delete/:chatId
- * @desc Delete a chat and all its messages
- * @access Private
  */
 export async function deleteChat(req, res, next) {
     try {
@@ -90,9 +98,7 @@ export async function deleteChat(req, res, next) {
         const chat = await chatModel.findOneAndDelete({ _id: chatId, user: req.user.id });
         await messageModel.deleteMany({ chat: chatId });
         if (!chat) return res.status(404).json({ message: "chat not found" });
-        res.status(200).json({
-            message: "Chat deleted successfully."
-        })
+        res.status(200).json({ message: "Chat deleted successfully." });
     } catch (err) {
         next(err);
     }
