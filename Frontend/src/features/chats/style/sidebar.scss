@@ -104,7 +104,7 @@
 .plus-btn {
     background: rgba(255, 255, 255, 0.08);
     color: #fff;
-    
+
     &:hover {
         background: rgba(243, 57, 57, 0.12);
     }
@@ -232,6 +232,7 @@
         opacity: 0;
         transform: translateY(-4px) scale(0.97);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -319,6 +320,47 @@
 
         .sidebar-open & {
             transform: translateX(0);
+        }
+    }
+}
+
+// Token mini-bar in profile section
+.profile {
+    .profile-info {
+        flex: 1;
+        min-width: 0;
+
+        .username {
+            display: block;
+            font-size: 13px;
+            color: #d0d0d0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+    }
+
+    .token-mini-bar-wrapper {
+        height: 3px;
+        background: #2a2a2a;
+        border-radius: 99px;
+        overflow: hidden;
+        width: 100%;
+    }
+
+    .token-mini-bar-fill {
+        height: 100%;
+        background: $primary;
+        border-radius: 99px;
+        transition: width 0.4s ease;
+
+        &.warning {
+            background: #f59e0b;
+        }
+
+        &.danger {
+            background: #ef4444;
         }
     }
 }
