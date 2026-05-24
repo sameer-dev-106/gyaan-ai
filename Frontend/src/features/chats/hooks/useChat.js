@@ -1,38 +1,83 @@
-import { initializeSocketConnection } from "../services/chat.socket";
+import { initializeSocketConnection, getSocket } from "../services/chat.socket";
 import { sendMessageApi, getChatsApi, getMessagesApi, deleteChatApi } from "../services/chat.api";
 import { useDispatch, useSelector } from "react-redux";
-import { createNewChat, addNewMessage, setChats, setCurrentChatId, setError, setLoading, addMessages, deleteChat, clearCurrentChat } from "../chat.slice";
-
+import {
+    createNewChat,
+    addNewMessage,
+    addMessages,
+    startStreamingMessage,
+    appendStreamChunk,
+    endStreamingMessage,
+    setChats,
+    setCurrentChatId,
+    setError,
+    setLoading,
+    deleteChat,
+    clearCurrentChat
+} from "../chat.slice";
 
 export const useChat = () => {
-
     const chats = useSelector((state) => state.chat.chats);
     const dispatch = useDispatch();
 
+    function registerSocketEvents() {
+        const socket = getSocket();
+        if (!socket) return;
+
+        socket.off("ai:stream:start");
+        socket.off("ai:chunk");
+        socket.off("ai:stream:end");
+        socket.off("ai:stream:error");
+
+        socket.on("ai:stream:start", ({ chatId, newChat, userMessage }) => {
+            if (newChat && !chats[newChat._id]) {
+                dispatch(createNewChat({ chatId: newChat._id, title: newChat.title }));
+                dispatch(addNewMessage({ chatId: newChat._id, content: userMessage, role: "user" }));
+                dispatch(setCurrentChatId(newChat._id));
+            }
+            dispatch(startStreamingMessage({ chatId }));
+        });
+
+        socket.on("ai:chunk", ({ chatId, chunk }) => {
+            dispatch(appendStreamChunk({ chatId, chunk }));
+        });
+
+        socket.on("ai:stream:end", ({ chatId }) => {
+            dispatch(endStreamingMessage({ chatId }));
+            dispatch(setLoading(false));
+        });
+
+        socket.on("ai:stream:error", ({ chatId, error }) => {
+            dispatch(endStreamingMessage({ chatId }));
+            dispatch(setError(error));
+            dispatch(setLoading(false));
+        });
+    }
+
     async function handleSendMessage({ message, chatId }) {
         if (!message?.trim()) return;
-        dispatch(setLoading(true))
+        dispatch(setLoading(true));
+
         const targetChatId = chatId || null;
+
         if (targetChatId && chats[targetChatId]) {
             dispatch(addNewMessage({ chatId: targetChatId, content: message, role: "user" }));
         }
 
         try {
             const response = await sendMessageApi({ message, chatId: targetChatId });
-            const { chat, aiMessage } = response.data;
-            const resolvedChatId = chat?._id || targetChatId;
-            if (chat?._id && !chats[chat._id]) {
-                dispatch(createNewChat({ chatId: chat._id, title: chat.title }));
-                dispatch(addNewMessage({ chatId: chat._id, content: message, role: "user" }));
+            const { chatId: resolvedChatId } = response.data;
+
+            if (targetChatId) {
+                dispatch(setCurrentChatId(resolvedChatId));
             }
-            dispatch(addNewMessage({ chatId: resolvedChatId, content: aiMessage.content, role: aiMessage.role }));
-            dispatch(setCurrentChatId(resolvedChatId));
+
         } catch (err) {
             dispatch(setError(err?.message || "Something went wrong"));
-            return { success: false, error: err };
-        } finally {
             dispatch(setLoading(false));
+            return { success: false, error: err };
         }
+        // setLoading(false) → socket "ai:stream:end" pe hoga
     }
 
     async function handleGetChats() {
@@ -46,12 +91,12 @@ export const useChat = () => {
                     title: chat.title,
                     messages: [],
                     lastUpdate: chat.updatedAt,
-                }
-                return acc
+                };
+                return acc;
             }, {})));
         } catch (err) {
             dispatch(setError(err?.message || "Something went wrong"));
-            return { success: false, error: err }
+            return { success: false, error: err };
         } finally {
             dispatch(setLoading(false));
         }
@@ -88,10 +133,11 @@ export const useChat = () => {
 
     return {
         initializeSocketConnection,
+        registerSocketEvents,
         handleSendMessage,
         handleGetChats,
         handleOpenChat,
         handleDeleteChat,
         handleNewChat,
-    }
-}
+    };
+};
