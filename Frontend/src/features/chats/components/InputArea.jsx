@@ -1,5 +1,7 @@
 import React from "react";
-import { ArrowUp } from "lucide-react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router";
+import { ArrowUp, AlertTriangle } from "lucide-react";
 
 const InputArea = ({
   textareaRef,
@@ -10,7 +12,13 @@ const InputArea = ({
   chat,
   currentChatIdRef,
 }) => {
+  const navigate = useNavigate();
   const isBusy = isLoading || isStreaming;
+  const tokenLimitError = useSelector((state) => state.chat.tokenLimitError);
+  const tokensUsed = useSelector((state) => state.auth.user?.tokensUsed ?? 0);
+  const tokenLimit = useSelector(
+    (state) => state.auth.user?.tokenLimit ?? 50000,
+  );
 
   const autoResize = (el) => {
     el.style.height = "auto";
@@ -23,15 +31,12 @@ const InputArea = ({
   };
 
   const handleSend = () => {
-    if (!inputValue.trim() || isBusy) return;
-
+    if (!inputValue.trim() || isBusy || tokenLimitError) return;
     chat.handleSendMessage({
       message: inputValue,
       chatId: currentChatIdRef.current,
     });
-
     setInputValue("");
-
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
@@ -46,20 +51,33 @@ const InputArea = ({
 
   return (
     <div className="input-area">
+      {tokenLimitError && (
+        <div className="token-limit-banner">
+          <AlertTriangle size={15} />
+          <span>
+            Daily limit reached ({tokensUsed.toLocaleString()} /{" "}
+            {tokenLimit.toLocaleString()} tokens). Resets in 24h.
+          </span>
+          <button onClick={() => navigate("/settings")}>View Usage</button>
+        </div>
+      )}
+
       <div className="input-container">
         <textarea
           ref={textareaRef}
           className="chat-input"
-          placeholder="Ask anything..."
+          placeholder={
+            tokenLimitError ? "Daily limit reached..." : "Ask anything..."
+          }
           value={inputValue}
           onChange={handleInput}
           onKeyDown={handleKeyDown}
           rows={1}
-          disabled={isBusy}
+          disabled={isBusy || tokenLimitError}
         />
         <button
-          className={`send-btn ${inputValue.trim() && !isBusy ? "active" : ""}`}
-          disabled={!inputValue.trim() || isBusy}
+          className={`send-btn ${inputValue.trim() && !isBusy && !tokenLimitError ? "active" : ""}`}
+          disabled={!inputValue.trim() || isBusy || tokenLimitError}
           onClick={handleSend}
         >
           <ArrowUp size={17} />
