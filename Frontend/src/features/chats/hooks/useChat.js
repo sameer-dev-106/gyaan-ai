@@ -12,9 +12,11 @@ import {
     setCurrentChatId,
     setError,
     setLoading,
+    setTokenLimitError,
     deleteChat,
     clearCurrentChat
 } from "../chat.slice";
+import { updateTokenUsage } from "../../auth/auth.slice";
 
 export const useChat = () => {
     const chats = useSelector((state) => state.chat.chats);
@@ -42,9 +44,13 @@ export const useChat = () => {
             dispatch(appendStreamChunk({ chatId, chunk }));
         });
 
-        socket.on("ai:stream:end", ({ chatId }) => {
+        socket.on("ai:stream:end", ({ chatId, tokensUsed, tokenLimit }) => {
             dispatch(endStreamingMessage({ chatId }));
             dispatch(setLoading(false));
+            // Update token usage in auth state
+            if (tokensUsed !== undefined) {
+                dispatch(updateTokenUsage({ tokensUsed, tokenLimit }));
+            }
         });
 
         socket.on("ai:stream:error", ({ chatId, error }) => {
@@ -57,6 +63,7 @@ export const useChat = () => {
     async function handleSendMessage({ message, chatId }) {
         if (!message?.trim()) return;
         dispatch(setLoading(true));
+        dispatch(setTokenLimitError(false));
 
         const targetChatId = chatId || null;
 
@@ -73,7 +80,13 @@ export const useChat = () => {
             }
 
         } catch (err) {
-            dispatch(setError(err?.message || "Something went wrong"));
+            // Token limit error (429)
+            if (err?.response?.status === 429) {
+                dispatch(setTokenLimitError(true));
+                dispatch(setError(err?.response?.data?.message || "Daily token limit reached"));
+            } else {
+                dispatch(setError(err?.message || "Something went wrong"));
+            }
             dispatch(setLoading(false));
             return { success: false, error: err };
         }
