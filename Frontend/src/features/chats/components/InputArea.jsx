@@ -6,9 +6,12 @@ const InputArea = ({
   inputValue,
   setInputValue,
   isLoading,
+  isStreaming,
   chat,
   currentChatIdRef,
 }) => {
+  const isBusy = isLoading || isStreaming;
+
   const autoResize = (el) => {
     el.style.height = "auto";
     el.style.height = Math.min(el.scrollHeight, 180) + "px";
@@ -20,7 +23,7 @@ const InputArea = ({
   };
 
   const handleSend = () => {
-    if (!inputValue.trim() || isLoading) return;
+    if (!inputValue.trim() || isBusy) return;
 
     chat.handleSendMessage({
       message: inputValue,
@@ -52,10 +55,11 @@ const InputArea = ({
           onChange={handleInput}
           onKeyDown={handleKeyDown}
           rows={1}
+          disabled={isBusy}
         />
         <button
-          className={`send-btn ${inputValue.trim() && !isLoading ? "active" : ""}`}
-          disabled={!inputValue.trim() || isLoading}
+          className={`send-btn ${inputValue.trim() && !isBusy ? "active" : ""}`}
+          disabled={!inputValue.trim() || isBusy}
           onClick={handleSend}
         >
           <ArrowUp size={17} />
@@ -63,7 +67,9 @@ const InputArea = ({
       </div>
 
       <p className="input-hint">
-        Gyaan AI can make mistakes. Verify important info.
+        {isStreaming
+          ? "Gyaan AI is typing..."
+          : "Gyaan AI can make mistakes. Verify important info."}
       </p>
     </div>
   );
