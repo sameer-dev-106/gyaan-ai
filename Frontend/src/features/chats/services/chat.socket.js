@@ -2,9 +2,11 @@ import { io } from "socket.io-client";
 
 let socket = null;
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+
 export const initializeSocketConnection = () => {
     if (socket?.connected) return socket;
-    socket = io("https://gyaan-ai-epi0.onrender.com", {
+    socket = io(BACKEND_URL, {
         withCredentials:true
     });
     socket.on("connect", () => {
