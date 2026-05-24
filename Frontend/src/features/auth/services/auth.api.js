@@ -42,3 +42,21 @@ export const logoutApi = async () => {
         throw err.response?.data?.message || "Something went wrong";
     }
 };
+
+export const updateProfileApi = async ({ username }) => {
+    try {
+        const response = await API.put("/update-profile", { username });
+        return { success: true, data: response.data };
+    } catch (err) {
+        throw err.response?.data?.message || "Something went wrong";
+    }
+};
+
+export const changePasswordApi = async ({ currentPassword, newPassword }) => {
+    try {
+        const response = await API.put("/change-password", { currentPassword, newPassword });
+        return { success: true, data: response.data };
+    } catch (err) {
+        throw err.response?.data?.message || "Something went wrong";
+    }
+};
