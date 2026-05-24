@@ -6,7 +6,7 @@ export const useAuth = () => {
 
     const dispatch = useDispatch()
 
-    const handleRegister = async ({username, email, password}) => {
+    const handleRegister = async ({ username, email, password }) => {
         dispatch(setLoading(true));
         try {
             const response = await registerApi(username, email, password);
@@ -21,7 +21,7 @@ export const useAuth = () => {
         }
     }
 
-    const handleLogin = async ({email, password}) => {
+    const handleLogin = async ({ email, password }) => {
         dispatch(setLoading(true));
         try {
             const response = await loginApi(email, password);
