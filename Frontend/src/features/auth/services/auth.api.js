@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+
 const API = axios.create({
-    baseURL: "https://gyaan-ai-epi0.onrender.com/api/auth",
+    baseURL: `${BACKEND_URL}/api/auth`,
     withCredentials: true,
 });
 
