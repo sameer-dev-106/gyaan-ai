@@ -155,19 +155,34 @@
         height: 7px;
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.5);
-        // will-change forces GPU layer — fixes animation drop on mobile Safari/Chrome
         will-change: transform;
         animation: bounce 1.2s infinite ease-in-out;
 
-        &:nth-child(1) { animation-delay: 0s; }
-        &:nth-child(2) { animation-delay: 0.2s; }
-        &:nth-child(3) { animation-delay: 0.4s; }
+        &:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        &:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        &:nth-child(3) {
+            animation-delay: 0.4s;
+        }
     }
 }
 
 @keyframes bounce {
-    0%, 60%, 100% { transform: translateY(0); }
-    30%           { transform: translateY(-6px); }
+
+    0%,
+    60%,
+    100% {
+        transform: translateY(0);
+    }
+
+    30% {
+        transform: translateY(-6px);
+    }
 }
 
 // Mobile
@@ -180,5 +195,140 @@
     .bubble {
         max-width: 88%;
         font-size: 13.5px;
+    }
+}
+
+// Message actions (edit/delete)
+.bubble-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    max-width: 75%;
+
+    .message.user & {
+        align-items: flex-end;
+    }
+
+    .message.ai & {
+        align-items: flex-start;
+    }
+}
+
+// Rearrange .bubble max-width to bubble-wrapper
+.message.user .bubble-wrapper .bubble,
+.message.ai .bubble-wrapper .bubble {
+    max-width: 100%;
+}
+
+.msg-actions {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+    animation: fadeUp 0.12s ease;
+
+    &.user {
+        justify-content: flex-end;
+    }
+
+    &.ai {
+        justify-content: flex-start;
+    }
+}
+
+.msg-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+        &.edit {
+            background: rgba(96, 165, 250, 0.12);
+            border-color: rgba(96, 165, 250, 0.25);
+            color: #60a5fa;
+        }
+
+        &.delete {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.25);
+            color: #ef4444;
+        }
+    }
+}
+
+// Inline edit textarea
+.message-edit-area {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+}
+
+.message-edit-textarea {
+    width: 100%;
+    min-width: 200px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.6;
+    font-family: $font;
+    background: rgba(243, 57, 57, 0.1);
+    border: 1px solid rgba(243, 57, 57, 0.3);
+    color: #fff;
+    outline: none;
+    resize: none;
+    overflow: hidden;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+
+    &:focus {
+        border-color: rgba(243, 57, 57, 0.6);
+        box-shadow: 0 0 0 3px rgba(243, 57, 57, 0.08);
+    }
+}
+
+.edit-actions {
+    display: flex;
+    gap: 4px;
+    justify-content: flex-end;
+}
+
+.edit-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: $font;
+
+    &.confirm {
+        background: rgba(74, 222, 128, 0.1);
+        color: #4ade80;
+        border-color: rgba(74, 222, 128, 0.2);
+
+        &:hover {
+            background: rgba(74, 222, 128, 0.18);
+        }
+    }
+
+    &.cancel {
+        background: rgba(255, 255, 255, 0.04);
+        color: rgba(255, 255, 255, 0.5);
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
     }
 }
