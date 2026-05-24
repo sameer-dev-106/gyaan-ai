@@ -14,7 +14,10 @@ const Topbar = ({ setSidebarOpen, chat }) => {
         </div>
       </button>
       <span className="topbar-title">Gyaan AI</span>
-      <button className="icon-btn plus-btn" onClick={() => chat.handleNewChat()}>
+      <button
+        className="icon-btn plus-btn"
+        onClick={() => chat.handleNewChat()}
+      >
         <Plus size={18} />
       </button>
     </div>
