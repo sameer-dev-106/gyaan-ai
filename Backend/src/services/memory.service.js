@@ -1,4 +1,4 @@
-import userMemoryModel from '../models/userMemory.model.js';
+import userMemoryModel from '../models/usermemory.model.js';
 import { config } from '../config/config.js';
 import { ChatMistralAI } from '@langchain/mistralai';
 import { HumanMessage, SystemMessage } from 'langchain';
