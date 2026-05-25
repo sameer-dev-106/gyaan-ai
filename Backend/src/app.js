@@ -8,6 +8,7 @@ import { fileURLToPath } from "url";
 import handleError from "./middlewares/error.middleware.js";
 import authRouter from "./routes/auth.routes.js";
 import chatRouter from "./routes/chat.routes.js";
+import memoryRouter from "./routes/memory.routes.js";
 
 const app = express();
 
@@ -39,12 +40,12 @@ app.get("/", (req, res) => {
 // Routes
 app.use("/api/auth", authRouter);
 app.use("/api/chats", chatRouter);
+app.use("/api/memory", memoryRouter);
 
 // Frontend
 app.get("/{*splat}", (req, res) => {
     res.sendFile(path.join(__dirname, "../public", "index.html"));
 });
-
 
 // Error handling middleware
 app.use(handleError);
