@@ -1,4 +1,5 @@
 import { generateChatTitle, generateResponseStream } from "../services/ai.service.js";
+import { extractAndSaveFacts } from "../services/memory.service.js";
 import chatModel from "../models/chat.model.js";
 import messageModel from "../models/message.model.js";
 import userModel from "../models/user.model.js";
@@ -21,7 +22,6 @@ export async function sendMessage(req, res, next) {
         const userId = req.user.id;
         const io = getIo();
 
-        // ── Token limit check ─────────────────────────────
         const user = await userModel.findById(userId);
         user.checkAndResetDailyTokens();
 
@@ -35,7 +35,6 @@ export async function sendMessage(req, res, next) {
                 tokenLimit: user.tokenLimit,
             });
         }
-        // ─────────────────────────────────────────────────
 
         let newChat = null;
         if (!chatId) {
@@ -66,9 +65,14 @@ export async function sendMessage(req, res, next) {
 
         let fullResponse = "";
         try {
-            fullResponse = await generateResponseStream(messages, (chunk) => {
-                io.to(userId).emit("ai:chunk", { chatId: resolvedChatId, chunk });
-            });
+            fullResponse = await generateResponseStream(
+                messages,
+                (chunk) => {
+                    io.to(userId).emit("ai:chunk", { chatId: resolvedChatId, chunk });
+                },
+                user.username,
+                userId
+            );
 
             if (!fullResponse.trim()) {
                 throw new Error("AI returned empty response");
@@ -80,17 +84,19 @@ export async function sendMessage(req, res, next) {
                 role: "ai",
             });
 
-            // ── Track tokens used ──────────────────────────
             const tokensConsumed = estimateTokens(message) + estimateTokens(fullResponse);
             user.tokensUsed = Math.min(user.tokensUsed + tokensConsumed, user.tokenLimit);
             await user.save();
-            // ─────────────────────────────────────────────
 
             io.to(userId).emit("ai:stream:end", {
                 chatId: resolvedChatId,
                 tokensUsed: user.tokensUsed,
                 tokenLimit: user.tokenLimit,
             });
+
+            extractAndSaveFacts(userId, message, fullResponse).catch(err =>
+                console.error("Background memory extraction failed:", err.message)
+            );
 
         } catch (streamErr) {
             console.error("Streaming error:", streamErr);
