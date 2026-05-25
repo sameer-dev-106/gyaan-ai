@@ -2,7 +2,7 @@
 @use "../../../shared/assets/mixins" as *;
 
 .settings-page {
-    min-height: 100vh;
+    min-height: 100dvh;
     background: $bg-deep;
     color: $text-white;
     display: flex;

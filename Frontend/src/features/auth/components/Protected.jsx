@@ -12,7 +12,7 @@ const Protected = ({children}) => {
         return (
             <div style={{
                 width: '100%',
-                height: '100vh',
+                height: '100dvh',
                 background: '#0d0d0d',
                 display: 'flex',
                 alignItems: 'center',
