@@ -284,3 +284,197 @@
         max-width: 100%;
     }
 }
+// ── Memory Card Styles ──────────────────────────────────────────
+
+.memory-card {
+  .memory-icon {
+    background: rgba(99, 102, 241, 0.1) !important;
+    color: #818cf8 !important;
+  }
+
+  .pref-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  select {
+    width: 100%;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid $border;
+    border-radius: 10px;
+    color: $text-white;
+    font-size: 14px;
+    font-family: $font;
+    cursor: pointer;
+    transition: $transition;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+
+    &:focus {
+      outline: none;
+      border-color: $border-focus;
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    option {
+      background: #1a1a1a;
+      color: $text-white;
+    }
+  }
+
+  .memory-loading {
+    font-size: 13px;
+    color: $text-faint;
+    text-align: center;
+    padding: 16px 0;
+  }
+
+  .facts-section {
+    margin-top: 20px;
+    border-top: 1px solid $border;
+    padding-top: 16px;
+
+    .facts-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      background: rgba(99, 102, 241, 0.06);
+      border: 1px solid rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-family: $font;
+      cursor: pointer;
+      transition: $transition;
+
+      &:hover {
+        background: rgba(99, 102, 241, 0.1);
+      }
+    }
+
+    .facts-list {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 200px;
+      overflow-y: auto;
+
+      .fact-item {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid $border;
+        border-radius: 8px;
+        padding: 8px 12px;
+
+        .fact-key {
+          font-size: 11px;
+          font-weight: 600;
+          color: #818cf8;
+          min-width: 80px;
+          flex-shrink: 0;
+          text-transform: capitalize;
+        }
+
+        .fact-value {
+          font-size: 12px;
+          color: $text-muted;
+          line-height: 1.4;
+        }
+      }
+    }
+
+    .clear-facts-area {
+      margin-top: 12px;
+
+      .clear-facts-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: none;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        color: rgba(239, 68, 68, 0.6);
+        border-radius: 8px;
+        padding: 7px 14px;
+        font-size: 12px;
+        font-family: $font;
+        cursor: pointer;
+        transition: $transition;
+
+        &:hover {
+          background: rgba(239, 68, 68, 0.06);
+          color: #ef4444;
+          border-color: rgba(239, 68, 68, 0.35);
+        }
+      }
+
+      .clear-confirm {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+
+        span {
+          font-size: 12px;
+          color: $text-muted;
+        }
+
+        .confirm-btns {
+          display: flex;
+          gap: 8px;
+
+          .confirm-yes {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            color: #ef4444;
+            border-radius: 8px;
+            padding: 7px 16px;
+            font-size: 12px;
+            font-family: $font;
+            cursor: pointer;
+            transition: $transition;
+
+            &:hover:not(:disabled) {
+              background: rgba(239, 68, 68, 0.15);
+            }
+
+            &:disabled {
+              opacity: 0.5;
+              cursor: not-allowed;
+            }
+          }
+
+          .confirm-no {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid $border;
+            color: $text-muted;
+            border-radius: 8px;
+            padding: 7px 16px;
+            font-size: 12px;
+            font-family: $font;
+            cursor: pointer;
+            transition: $transition;
+
+            &:hover {
+              background: rgba(255, 255, 255, 0.06);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .memory-card .pref-row {
+    grid-template-columns: 1fr;
+  }
+}
