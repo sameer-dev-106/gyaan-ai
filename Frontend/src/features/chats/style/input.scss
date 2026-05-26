@@ -116,18 +116,18 @@
     }
 }
 
-// Token limit error banner
+// Token limit banners
 .token-limit-banner {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: rgba(239, 68, 68, 0.08);
-    border: 1px solid rgba(239, 68, 68, 0.2);
     border-radius: 10px;
     padding: 9px 14px;
     margin-bottom: 8px;
-    font-size: 13px;
-    color: #ef4444;
+    font-size: 12px;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
 
     svg {
         flex-shrink: 0;
@@ -135,21 +135,45 @@
 
     span {
         flex: 1;
+        line-height: 1.4;
     }
 
     button {
-        background: rgba(239, 68, 68, 0.15);
         border: none;
-        color: #ef4444;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 600;
         padding: 4px 10px;
         border-radius: 6px;
         cursor: pointer;
         white-space: nowrap;
+    }
 
-        &:hover {
-            background: rgba(239, 68, 68, 0.25);
+    &.danger-banner {
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.22);
+        color: #ef4444;
+
+        button {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+
+            &:hover {
+                background: rgba(239, 68, 68, 0.25);
+            }
         }
     }
+
+    &.warning-banner {
+        background: rgba(245, 158, 11, 0.07);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        color: #f59e0b;
+    }
+}
+
+// Frozen input — greyed out look
+.input-frozen {
+    opacity: 0.55;
+    pointer-events: none;
+    border-color: rgba(239, 68, 68, 0.2) !important;
+    box-shadow: none !important;
 }
