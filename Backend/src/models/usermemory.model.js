@@ -10,6 +10,7 @@ const userMemorySchema = new mongoose.Schema(
         },
         preferences: {
             fullName: { type: String, default: '' },
+            dateOfBirth: { type: String, default: '' },
             profession: { type: String, default: '' },
             location: { type: String, default: '' },
             language: {
@@ -41,6 +42,7 @@ userMemorySchema.methods.toPromptString = function () {
     const lines = [];
 
     if (p.fullName)   lines.push(`User's name: ${p.fullName}`);
+    if (p.dateOfBirth) lines.push(`Date of birth: ${p.dateOfBirth}`);
     if (p.profession) lines.push(`Profession: ${p.profession}`);
     if (p.location)   lines.push(`Location: ${p.location}`);
     if (p.language)   lines.push(`Preferred language: ${p.language}`);
