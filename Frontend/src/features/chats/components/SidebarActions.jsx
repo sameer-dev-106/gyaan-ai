@@ -1,7 +1,7 @@
 import React from "react";
 import { Plus, Search } from "lucide-react";
 
-const SidebarActions = ({ chat, setSidebarOpen }) => {
+const SidebarActions = ({ chat, setSidebarOpen, onSearchOpen }) => {
   const handleNewChat = () => {
     chat.handleNewChat();
     if (window.innerWidth < 768) setSidebarOpen(false);
@@ -13,8 +13,8 @@ const SidebarActions = ({ chat, setSidebarOpen }) => {
         <Plus size={15} />
         <span>New Chat</span>
       </button>
-      <button className="search-btn">
-        <Search size={16} />
+      <button className="search-btn" onClick={onSearchOpen}>
+        <Search size={15} />
         <span>Search</span>
       </button>
     </div>

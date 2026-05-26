@@ -6,6 +6,7 @@ import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import MessagesSection from "../components/MessagesSection";
 import InputArea from "../components/InputArea";
+import SearchModal from "../components/SearchModal";
 
 import "../style/index.scss";
 
@@ -15,6 +16,7 @@ const Dashboard = () => {
   const currentChatIdRef = useRef(null);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [hoveredChatId, setHoveredChatId] = useState(null);
   const [openMenuChatId, setOpenMenuChatId] = useState(null);
@@ -64,6 +66,8 @@ const Dashboard = () => {
     textareaRef,
     sidebarOpen,
     setSidebarOpen,
+    searchOpen,
+    onSearchOpen: () => setSearchOpen(true),
     inputValue,
     setInputValue,
     hoveredChatId,
@@ -84,6 +88,13 @@ const Dashboard = () => {
         <MessagesSection {...dashboardProps} />
         <InputArea {...dashboardProps} />
       </section>
+
+      <SearchModal
+        isOpen={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        chats={chats}
+        onSelectChat={(chatId) => chat.handleOpenChat(chatId, chats)}
+      />
     </main>
   );
 };
