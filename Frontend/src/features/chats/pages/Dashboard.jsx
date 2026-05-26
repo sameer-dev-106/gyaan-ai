@@ -70,6 +70,7 @@ const Dashboard = () => {
     setHoveredChatId,
     openMenuChatId,
     setOpenMenuChatId,
+    onDeleteMessage: chat.handleDeleteMessage,
   };
 
   return (
