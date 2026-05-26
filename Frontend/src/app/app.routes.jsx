@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router";
 import Login from "../features/auth/pages/Login";
 import Register from "../features/auth/pages/Register";
 import VerifyEmail from "../features/auth/pages/VerifyEmail";
+import CheckInbox from "../features/auth/pages/CheckInbox";
 import CompleteProfile from "../features/auth/pages/CompleteProfile";
 import Dashboard from "../features/chats/pages/Dashboard";
 import Settings from "../features/settings/pages/Settings";
@@ -31,6 +32,10 @@ export const router = createBrowserRouter([
   {
     path: "/login",
     element: <Login />,
+  },
+  {
+    path: "/check-inbox",
+    element: <CheckInbox />,
   },
   {
     path: "/verify-email",
