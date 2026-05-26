@@ -151,3 +151,34 @@ export async function deleteChat(req, res, next) {
         next(err);
     }
 }
+
+/**
+ * @route DELETE /api/chats/:chatId/messages/:messageId
+ * @desc  Delete a message AND all messages that came after it (same chat)
+ *        This is used when user deletes their own message — the AI reply
+ *        and everything below it should also be removed.
+ * @access Private
+ */
+export async function deleteMessageFrom(req, res, next) {
+    try {
+        const { chatId, messageId } = req.params;
+
+        const chat = await chatModel.findOne({ _id: chatId, user: req.user.id });
+        if (!chat) return res.status(404).json({ message: "Chat not found" });
+
+        const targetMessage = await messageModel.findOne({ _id: messageId, chat: chatId });
+        if (!targetMessage) return res.status(404).json({ message: "Message not found" });
+
+        const deletedResult = await messageModel.deleteMany({
+            chat: chatId,
+            createdAt: { $gte: targetMessage.createdAt },
+        });
+
+        res.status(200).json({
+            message: "Message and subsequent messages deleted successfully.",
+            deletedCount: deletedResult.deletedCount,
+        });
+    } catch (err) {
+        next(err);
+    }
+}
