@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import { GoogleIcon } from "../icons/Auth.icons";
 import { getPasswordStrength } from "../utils/auth.utils";
 import AuthLeft from "../components/AuthLeft";
+import Toast from "../../../shared/components/Toast"; // adjust path as needed
 
 const Register = () => {
   const { handleRegister } = useAuth();
@@ -17,25 +18,37 @@ const Register = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [toast, setToast] = useState(null); // { message, type }
 
   const strength = getPasswordStrength(password);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrors({});
-    const { success, error } = await handleRegister(username, email, password);
+    setToast(null);
+
+    const { success, error } = await handleRegister({ username, email, password });
+
     if (!success) {
-      setErrors({ form: error });
+      setToast({ message: error || "Something went wrong. Please try again.", type: "error" });
       return;
     }
 
-    navigate("/login");
+    // ✅ Redirect to verify-email page with email in state
+    navigate("/verify-email", { state: { email } });
   };
 
   return (
     <div className={styles.authPage}>
+      {/* Global toast popup */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       <AuthLeft
         title="Your AI learning journey starts here."
         subtitle="Join thousands of students using Gyaan AI to master any subject — faster, smarter, and with confidence."
@@ -56,11 +69,7 @@ const Register = () => {
           </div>
 
           <div className={styles.oauthRow}>
-            <button
-              className={styles.googleBtn}
-              // onClick={() => redirectToOAuth("google")}
-              type="button"
-            >
+            <button className={styles.googleBtn} type="button">
               <GoogleIcon /> Google
             </button>
           </div>
@@ -123,22 +132,14 @@ const Register = () => {
                       />
                     ))}
                   </div>
-                  <span
-                    className={`${styles.strengthLabel} ${styles[strength.cls]}`}
-                  >
+                  <span className={`${styles.strengthLabel} ${styles[strength.cls]}`}>
                     {strength.label}
                   </span>
                 </>
               )}
             </div>
 
-            {errors.form && <p className={styles.errorMsg}>{errors.form}</p>}
-
-            <button
-              type="submit"
-              className={styles.submitBtn}
-              disabled={loading}
-            >
+            <button type="submit" className={styles.submitBtn} disabled={loading}>
               {loading ? (
                 <>
                   <span className={styles.spinner} /> Creating account...
