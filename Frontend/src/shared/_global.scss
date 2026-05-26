@@ -4,6 +4,32 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+::selection {
+  background: rgba(243, 57, 57, 0.25);
+  color: inherit;
+}
+
+::-moz-selection {
+  background: rgba(243, 57, 57, 0.25);
+  color: inherit;
+}
+
+button,
+a,
+input,
+textarea {
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid rgba(243, 57, 57, 0.5);
+  outline-offset: 2px;
 }
 
 html,
