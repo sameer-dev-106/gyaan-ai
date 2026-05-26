@@ -7,12 +7,20 @@ const API = axios.create({
     withCredentials: true,
 });
 
+const handleApiError = (err, fallbackMessage) => {
+    throw (
+        err?.response?.data?.message ||
+        err?.message ||
+        fallbackMessage
+    );
+};
+
 export const registerApi = async ({ username, email, password }) => {
     try {
         const response = await API.post("/register", { username, email, password });
         return { success: true, data: response.data };
     } catch (err) {
-        throw err.response?.data?.message || "Something went wrong";
+        handleApiError(err, "Registration failed");
     }
 };
 
@@ -21,7 +29,16 @@ export const loginApi = async (email, password) => {
         const response = await API.post("/login", { email, password });
         return { success: true, data: response.data };
     } catch (err) {
-        throw err.response?.data?.message || "auth.api - Something went wrong";
+        handleApiError(err, "Login failed");
+    }
+};
+
+export const verifyEmailApi = async (token) => {
+    try {
+        const response = await API.get(`/verify-email?token=${token}`);
+        return { success: true, data: response.data };
+    } catch (err) {
+        handleApiError(err, "Email verification failed");
     }
 };
 
@@ -39,7 +56,7 @@ export const logoutApi = async () => {
         await API.post("/logout");
         return { success: true };
     } catch (err) {
-        throw err.response?.data?.message || "Something went wrong";
+        handleApiError(err, "Failed to fetch user");
     }
 };
 
@@ -48,7 +65,7 @@ export const updateProfileApi = async ({ username }) => {
         const response = await API.put("/update-profile", { username });
         return { success: true, data: response.data };
     } catch (err) {
-        throw err.response?.data?.message || "Something went wrong";
+        handleApiError(err, "Profile update failed");
     }
 };
 
@@ -57,6 +74,6 @@ export const changePasswordApi = async ({ currentPassword, newPassword }) => {
         const response = await API.put("/change-password", { currentPassword, newPassword });
         return { success: true, data: response.data };
     } catch (err) {
-        throw err.response?.data?.message || "Something went wrong";
+        handleApiError(err, "Password change failed");
     }
 };
