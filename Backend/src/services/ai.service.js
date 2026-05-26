@@ -1,40 +1,43 @@
 import { config } from "../config/config.js";
 import { ChatMistralAI } from "@langchain/mistralai";
-import { HumanMessage, SystemMessage, AIMessage, tool, createAgent } from "langchain";
+import { HumanMessage, SystemMessage, AIMessage, ToolMessage } from "@langchain/core/messages";
 import { searchInternet } from "./internet.service.js";
 import { buildMemoryPromptBlock } from "./memory.service.js";
-import * as z from "zod";
 
 const mistralModel = new ChatMistralAI({
     model: "mistral-small-latest",
-    apiKey: config.MISTRAL_API_KEY
+    apiKey: config.MISTRAL_API_KEY,
 });
 
-const searchInternetTool = tool(
-    searchInternet,
+const tools = [
     {
-        name: "searchInternet",
-        description: "Use this tool to get latest information from the internet.",
-        schema: z.object({
-            query: z.string().describe("The search query to look up on the internet.")
-        })
-    }
-);
+        type: "function",
+        function: {
+            name: "searchInternet",
+            description: "Use this to get real-time or up-to-date information from the internet. Use it for current events, today's date, recent news, current leaders/positions, prices, weather, or anything that may have changed recently.",
+            parameters: {
+                type: "object",
+                properties: {
+                    query: {
+                        type: "string",
+                        description: "The search query to look up on the internet.",
+                    },
+                },
+                required: ["query"],
+            },
+        },
+    },
+];
 
-const agent = createAgent({ model: mistralModel, tools: [searchInternetTool] });
+const modelWithTools = mistralModel.bindTools(tools);
 
-/**
- * Build the system prompt — injects:
- *  1. User's username (always)
- *  2. Long-term memory block (if any exists for this user)
- */
+
 async function buildSystemPrompt(username, userId) {
     let prompt = `You are Gyaan AI, a helpful and precise assistant for answering questions.
 The user you are talking to is named "${username}". Address them by name occasionally to make the conversation feel personal.
 If you don't know the answer, say you don't know.
-If the question requires up-to-date information, use the "searchInternet" tool to get the latest information from the internet and then answer based on the search results.`;
+IMPORTANT: For any question about current date/time, recent news, current leaders, current events, prices, or anything that may have changed — you MUST use the "searchInternet" tool. Do not guess from training data.`;
 
-    // Inject long-term memory if userId provided
     if (userId) {
         const memoryBlock = await buildMemoryPromptBlock(userId);
         if (memoryBlock) {
@@ -48,49 +51,69 @@ If the question requires up-to-date information, use the "searchInternet" tool t
 function buildMessages(messages, systemPrompt) {
     return [
         new SystemMessage(systemPrompt),
-        ...messages.map(msg => {
+        ...messages.map((msg) => {
             if (msg.role === "user") return new HumanMessage(msg.content);
             if (msg.role === "ai") return new AIMessage(msg.content);
-        }).filter(Boolean)
+        }).filter(Boolean),
     ];
 }
 
+async function runAgentLoop(langchainMessages) {
+    let messages = [...langchainMessages];
+    const MAX_ITERATIONS = 5;
+
+    for (let i = 0; i < MAX_ITERATIONS; i++) {
+        const response = await modelWithTools.invoke(messages);
+        messages.push(response);
+
+        const toolCalls = response.tool_calls || [];
+        if (toolCalls.length === 0) {
+            return response.content || "";
+        }
+
+        for (const toolCall of toolCalls) {
+            console.log(`[Agent] Calling tool: ${toolCall.name} with query: ${toolCall.args?.query}`);
+            let toolResult;
+            try {
+                if (toolCall.name === "searchInternet") {
+                    toolResult = await searchInternet({ query: toolCall.args.query });
+                } else {
+                    toolResult = `Tool "${toolCall.name}" not found.`;
+                }
+            } catch (err) {
+                toolResult = `Tool error: ${err.message}`;
+                console.error(`[Agent] Tool error:`, err.message);
+            }
+
+            messages.push(
+                new ToolMessage({
+                    content: toolResult,
+                    tool_call_id: toolCall.id,
+                })
+            );
+        }
+    }
+
+    throw new Error("Agent loop exceeded max iterations");
+}
+
 /**
- * Generate a streaming AI response with personalized system prompt.
- *
- * @param {Array}    messages  - Array of {role, content} from DB
- * @param {Function} onChunk   - Callback for each streamed chunk
- * @param {string}   username  - User's username (for personalization)
- * @param {string}   userId    - User's MongoDB _id (for memory lookup)
+ * Generate a streaming AI response.
+ * Note: Tool calls can't be truly streamed, so we run the agent loop first,
+ * then stream the final answer for a smooth UX.
  */
 export const generateResponseStream = async (messages, onChunk, username = "there", userId = null) => {
     try {
         const systemPrompt = await buildSystemPrompt(username, userId);
         const langchainMessages = buildMessages(messages, systemPrompt);
 
-        let fullText = "";
-        const stream = await mistralModel.stream(langchainMessages);
-
-        for await (const chunk of stream) {
-            const text = chunk.content;
-            if (typeof text === "string" && text) {
-                fullText += text;
-                onChunk(text);
-            }
-        }
-
-        if (!fullText.trim()) {
-            console.log("Stream empty — falling back to agent.invoke() for tool use");
-            const result = await agent.invoke({ messages: langchainMessages });
-            const finalMsg = result.messages[result.messages.length - 1];
-            fullText = finalMsg.content || finalMsg.text || "";
-            if (fullText) onChunk(fullText);
-        }
+        const fullText = await runAgentLoop(langchainMessages);
 
         if (!fullText.trim()) {
             throw new Error("AI returned empty response");
         }
 
+        onChunk(fullText);
         return fullText;
     } catch (err) {
         console.error("generateResponseStream error:", err);
@@ -101,9 +124,11 @@ export const generateResponseStream = async (messages, onChunk, username = "ther
 export const generateChatTitle = async (message) => {
     try {
         const response = await mistralModel.invoke([
-            new SystemMessage(`You are a helpful assistant that generates concise and descriptive titles for chat conversations.
-User will provide you with the first message of a chat, and you will generate a title in 2-4 words. Be clear and relevant.`),
-            new HumanMessage(`Generate a title for this first message: "${message}"`)
+            new SystemMessage(
+                `You are a helpful assistant that generates concise and descriptive titles for chat conversations.
+User will provide you with the first message of a chat, and you will generate a title in 2-4 words. Be clear and relevant.`
+            ),
+            new HumanMessage(`Generate a title for this first message: "${message}"`),
         ]);
         return response.content || response.text;
     } catch (error) {
