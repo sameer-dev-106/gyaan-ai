@@ -7,7 +7,7 @@ const ProfileSection = ({ user }) => {
   const navigate = useNavigate();
   const tokensUsed = useSelector((state) => state.auth.user?.tokensUsed ?? 0);
   const tokenLimit = useSelector(
-    (state) => state.auth.user?.tokenLimit ?? 50000,
+    (state) => state.auth.user?.tokenLimit ?? 5000,
   );
   const tokenPercent = Math.min(
     Math.round((tokensUsed / tokenLimit) * 100),
@@ -21,7 +21,6 @@ const ProfileSection = ({ user }) => {
       </div>
       <div className="profile-info">
         <span className="username">{user?.username}</span>
-        {/* Token usage mini-bar */}
         <div
           className="token-mini-bar-wrapper"
           title={`${tokensUsed} / ${tokenLimit} tokens used`}
