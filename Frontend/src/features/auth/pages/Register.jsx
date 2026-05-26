@@ -35,7 +35,7 @@ const Register = () => {
     }
 
     // ✅ Redirect to verify-email page with email in state
-    navigate("/verify-email", { state: { email } });
+    navigate("/check-inbox", { state: { email } });
   };
 
   return (
