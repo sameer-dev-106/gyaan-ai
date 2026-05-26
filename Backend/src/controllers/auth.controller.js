@@ -35,8 +35,8 @@ export const register = async (req, res, next) => {
         const user = await userModel.create({ username, email, password });
         const emailVerificationToken = jwt.sign({
             email: user.email,
-        }, config.JWT_SECRET)
-        await sendEmail({
+        }, config.JWT_SECRET);
+        const emailResponse = await sendEmail({
             to: email,
             subject: "Welcome to Gyaan AI!",
             html: `
@@ -48,9 +48,12 @@ export const register = async (req, res, next) => {
                 <p>Best regards,<br>The Gyaan AI Team</p>
         `
         });
-        res.status(201).json({
-            message: "User registered successfully",
+        return res.status(201).json({
             success: true,
+            message: emailResponse.success
+                ? "User registered successfully. Verification email sent."
+                : "User registered successfully. Email verification pending.",
+            emailSent: emailResponse.success,
             user: {
                 id: user._id,
                 username: user.username,
