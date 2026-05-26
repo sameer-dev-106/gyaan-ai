@@ -76,7 +76,6 @@ const chatSlice = createSlice({
         deleteChat: (state, action) => {
             const chatId = action.payload;
             delete state.chats[chatId];
-            // Agar current chat delete ho to null set karo, new chat empty state dikhaye
             if (state.currentChatId === chatId) {
                 state.currentChatId = null;
             }
@@ -84,7 +83,12 @@ const chatSlice = createSlice({
         clearCurrentChat: (state) => {
             state.currentChatId = null;
         },
-        // Message-level actions
+        deleteMessagesFrom: (state, action) => {
+            const { chatId, fromIndex } = action.payload;
+            if (state.chats[chatId]) {
+                state.chats[chatId].messages.splice(fromIndex);
+            }
+        },
         deleteMessage: (state, action) => {
             const { chatId, msgIndex } = action.payload;
             if (state.chats[chatId]) {
@@ -114,6 +118,7 @@ export const {
     setTokenLimitError,
     deleteChat,
     clearCurrentChat,
+    deleteMessagesFrom,
     deleteMessage,
     updateMessage,
 } = chatSlice.actions;
