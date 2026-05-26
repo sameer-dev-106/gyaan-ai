@@ -13,8 +13,8 @@ export default defineConfig({
         name: 'Gyaan AI',
         short_name: 'GyaanAI',
         description: 'AI powered assistant',
-        theme_color: '#000000',
-        background_color: '#ffffff',
+        theme_color: "#0f0f0f",
+        background_color: "#0f0f0f",
         display: 'standalone',
         start_url: '/',
 
