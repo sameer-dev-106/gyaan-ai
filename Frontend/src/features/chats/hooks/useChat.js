@@ -1,5 +1,5 @@
 import { initializeSocketConnection, getSocket } from "../services/chat.socket";
-import { sendMessageApi, getChatsApi, getMessagesApi, deleteChatApi } from "../services/chat.api";
+import { sendMessageApi, getChatsApi, getMessagesApi, deleteChatApi, deleteMessageFromApi } from "../services/chat.api";
 import { useDispatch, useSelector } from "react-redux";
 import {
     createNewChat,
@@ -14,7 +14,8 @@ import {
     setLoading,
     setTokenLimitError,
     deleteChat,
-    clearCurrentChat
+    clearCurrentChat,
+    deleteMessagesFrom,
 } from "../chat.slice";
 import { updateTokenUsage } from "../../auth/auth.slice";
 
@@ -47,7 +48,6 @@ export const useChat = () => {
         socket.on("ai:stream:end", ({ chatId, tokensUsed, tokenLimit }) => {
             dispatch(endStreamingMessage({ chatId }));
             dispatch(setLoading(false));
-            // Update token usage in auth state
             if (tokensUsed !== undefined) {
                 dispatch(updateTokenUsage({ tokensUsed, tokenLimit }));
             }
@@ -74,13 +74,10 @@ export const useChat = () => {
         try {
             const response = await sendMessageApi({ message, chatId: targetChatId });
             const { chatId: resolvedChatId } = response.data;
-
             if (targetChatId) {
                 dispatch(setCurrentChatId(resolvedChatId));
             }
-
         } catch (err) {
-            // Token limit error (429)
             if (err?.response?.status === 429) {
                 dispatch(setTokenLimitError(true));
                 dispatch(setError(err?.response?.data?.message || "Daily token limit reached"));
@@ -90,7 +87,6 @@ export const useChat = () => {
             dispatch(setLoading(false));
             return { success: false, error: err };
         }
-        // setLoading(false) → socket "ai:stream:end" pe hoga
     }
 
     async function handleGetChats() {
@@ -121,7 +117,12 @@ export const useChat = () => {
             if (chats[chatId]?.messages.length === 0) {
                 const response = await getMessagesApi(chatId);
                 const { messages } = response.data;
-                const formattedMessages = messages.map(msg => ({ content: msg.content, role: msg.role }));
+                // ✅ _id bhi save karo — delete ke liye zaroori hai
+                const formattedMessages = messages.map(msg => ({
+                    _id: msg._id,
+                    content: msg.content,
+                    role: msg.role,
+                }));
                 dispatch(addMessages({ chatId, messages: formattedMessages }));
             }
         } catch (err) {
@@ -140,6 +141,21 @@ export const useChat = () => {
         }
     }
 
+    /**
+     * Delete a message from DB + all messages after it,
+     * then remove them from Redux too.
+     */
+    async function handleDeleteMessage({ chatId, messageId, msgIndex }) {
+        try {
+            await deleteMessageFromApi({ chatId, messageId });
+            // ✅ Redux mein bhi us index se aage sab hata do
+            dispatch(deleteMessagesFrom({ chatId, fromIndex: msgIndex }));
+        } catch (err) {
+            dispatch(setError(err?.message || "Message delete failed"));
+            return { success: false, error: err };
+        }
+    }
+
     function handleNewChat() {
         dispatch(clearCurrentChat());
     }
@@ -151,6 +167,7 @@ export const useChat = () => {
         handleGetChats,
         handleOpenChat,
         handleDeleteChat,
+        handleDeleteMessage,
         handleNewChat,
     };
 };
