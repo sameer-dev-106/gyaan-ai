@@ -1,7 +1,7 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
-import { ArrowUp, AlertTriangle } from "lucide-react";
+import { ArrowUp, AlertTriangle, Zap } from "lucide-react";
 
 const InputArea = ({
   textareaRef,
@@ -17,8 +17,16 @@ const InputArea = ({
   const tokenLimitError = useSelector((state) => state.chat.tokenLimitError);
   const tokensUsed = useSelector((state) => state.auth.user?.tokensUsed ?? 0);
   const tokenLimit = useSelector(
-    (state) => state.auth.user?.tokenLimit ?? 50000,
+    (state) => state.auth.user?.tokenLimit ?? 5000,
   );
+
+  const tokenPercent = Math.min(
+    Math.round((tokensUsed / tokenLimit) * 100),
+    100,
+  );
+  const isWarning = tokenPercent >= 80 && tokenPercent < 100;
+  const isDanger = tokenPercent >= 100 || tokenLimitError;
+  const tokensLeft = Math.max(0, tokenLimit - tokensUsed);
 
   const autoResize = (el) => {
     el.style.height = "auto";
@@ -31,7 +39,7 @@ const InputArea = ({
   };
 
   const handleSend = () => {
-    if (!inputValue.trim() || isBusy || tokenLimitError) return;
+    if (!inputValue.trim() || isBusy || isDanger) return;
     chat.handleSendMessage({
       message: inputValue,
       chatId: currentChatIdRef.current,
@@ -51,33 +59,48 @@ const InputArea = ({
 
   return (
     <div className="input-area">
-      {tokenLimitError && (
-        <div className="token-limit-banner">
+      {/* ── Token limit FULL — hard block ── */}
+      {isDanger && (
+        <div className="token-limit-banner danger-banner">
           <AlertTriangle size={15} />
           <span>
-            Daily limit reached ({tokensUsed.toLocaleString()} /{" "}
-            {tokenLimit.toLocaleString()} tokens). Resets in 24h.
+            Aaj ke tokens khatam ho gaye ({tokensUsed.toLocaleString()} /{" "}
+            {tokenLimit.toLocaleString()}). 24 ghante baad reset hoga. ⏳
           </span>
-          <button onClick={() => navigate("/settings")}>View Usage</button>
+          <button onClick={() => navigate("/settings")}>Usage dekho</button>
         </div>
       )}
 
-      <div className="input-container">
+      {/* ── Warning — 80%+ used, still can send ── */}
+      {isWarning && !isDanger && (
+        <div className="token-limit-banner warning-banner">
+          <Zap size={14} />
+          <span>
+            Sirf {tokensLeft.toLocaleString()} tokens bache hain aaj ke liye.
+          </span>
+        </div>
+      )}
+
+      <div className={`input-container ${isDanger ? "input-frozen" : ""}`}>
         <textarea
           ref={textareaRef}
           className="chat-input"
           placeholder={
-            tokenLimitError ? "Daily limit reached..." : "Ask anything..."
+            isDanger
+              ? "Daily limit khatam... kal aana 👋"
+              : isWarning
+                ? `Thode tokens bache hain (${tokensLeft} left)...`
+                : "Ask anything..."
           }
           value={inputValue}
           onChange={handleInput}
           onKeyDown={handleKeyDown}
           rows={1}
-          disabled={isBusy || tokenLimitError}
+          disabled={isBusy || isDanger}
         />
         <button
-          className={`send-btn ${inputValue.trim() && !isBusy && !tokenLimitError ? "active" : ""}`}
-          disabled={!inputValue.trim() || isBusy || tokenLimitError}
+          className={`send-btn ${inputValue.trim() && !isBusy && !isDanger ? "active" : ""}`}
+          disabled={!inputValue.trim() || isBusy || isDanger}
           onClick={handleSend}
         >
           <ArrowUp size={17} />
@@ -87,7 +110,9 @@ const InputArea = ({
       <p className="input-hint">
         {isStreaming
           ? "Gyaan AI is typing..."
-          : "Gyaan AI can make mistakes. Verify important info."}
+          : isDanger
+            ? "Token limit reached. Resets in 24h."
+            : "Gyaan AI can make mistakes. Verify important info."}
       </p>
     </div>
   );
