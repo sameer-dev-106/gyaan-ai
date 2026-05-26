@@ -8,6 +8,7 @@ const MessagesSection = ({
   currentChatId,
   isLoading,
   messagesEndRef,
+  onDeleteMessage,
 }) => (
   <div className="messages-wrapper">
     <div className="messages">
@@ -15,10 +16,11 @@ const MessagesSection = ({
 
       {chats[currentChatId]?.messages?.map((msg, idx) => (
         <MessageItem
-          key={idx}
+          key={msg._id || idx}
           msg={msg}
           msgIndex={idx}
           currentChatId={currentChatId}
+          onDeleteMessage={onDeleteMessage}
         />
       ))}
 
