@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { sendMessage, getChats, getMessages, deleteChat } from "../controllers/chat.controller.js";
+import { sendMessage, getChats, getMessages, deleteChat, deleteMessageFrom } from "../controllers/chat.controller.js";
 import { authUser } from "../middlewares/auth.middleware.js";
 import { get } from "mongoose";
 
@@ -39,5 +39,14 @@ chatRouter.get("/:chatId/messages", getMessages);
  * @access Private
  */
 chatRouter.delete("/delete/:chatId", deleteChat);
+
+/**
+ * @route DELETE /api/chats/:chatId/messages/:messageId
+ * @desc  Delete a message AND all messages that came after it (same chat)
+ *        This is used when user deletes their own message — the AI reply
+ *        and everything below it should also be removed.
+ * @access Private
+ */
+chatRouter.delete("/:chatId/messages/:messageId", deleteMessageFrom);
 
 export default chatRouter;
