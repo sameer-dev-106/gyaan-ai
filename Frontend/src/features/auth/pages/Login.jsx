@@ -6,6 +6,7 @@ import styles from "../style/auth.module.scss";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import { GoogleIcon } from "../icons/Auth.icons";
 import AuthLeft from "../components/AuthLeft";
+import Toast from "../../../shared/components/Toast";
 
 const Login = () => {
   const { handleLogin } = useAuth();
@@ -16,17 +17,21 @@ const Login = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrors({});
+    setToast(null);
     const { success, error } = await handleLogin({ email, password });
     if (!success) {
-      setErrors({ form: error });
+      setToast({
+        message: error || "Login failed. Please check your credentials.",
+        type: "error",
+      });
       return;
     }
+
     navigate("/");
   };
 
@@ -36,6 +41,14 @@ const Login = () => {
 
   return (
     <div className={styles.authPage}>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       <AuthLeft
         title="Learn smarter, not harder."
         subtitle="Gyaan AI gives you personalized AI-powered learning — built around how your mind works."
@@ -56,11 +69,7 @@ const Login = () => {
           </div>
 
           <div className={styles.oauthRow}>
-            <button
-              className={styles.googleBtn}
-              // onClick={() => redirectToOAuth("google")}
-              type="button"
-            >
+            <button className={styles.googleBtn} type="button">
               <GoogleIcon /> Google
             </button>
           </div>
@@ -101,8 +110,6 @@ const Login = () => {
                 </button>
               </div>
             </div>
-
-            {errors.form && <p className={styles.errorMsg}>{errors.form}</p>}
 
             <div className={styles.forgotRow}>
               <button type="button">Forgot password?</button>
