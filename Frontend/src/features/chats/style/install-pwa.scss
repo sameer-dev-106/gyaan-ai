@@ -1,0 +1,47 @@
+.install-pwa {
+    max-width: 240px;
+    text-align: center;
+    margin: 12px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: rgba(15, 15, 15, 0.96);
+    border: 1px solid rgba(255, 0, 0, 0.2);
+    border-radius: 18px;
+    backdrop-filter: blur(18px);
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.12);
+    &__content {
+        h4 {
+            color: white;
+            margin-bottom: 4px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        p {
+            color: #9f9f9f;
+            font-size: 13px;
+            max-width: 240px;
+            line-height: 1.4;
+        }
+    }
+    button {
+        width: 100%;
+        border: none;
+        outline: none;
+        padding: 10px 16px;
+        border-radius: 12px;
+        background: linear-gradient(135deg,
+                #ff2a2a,
+                #b31217);
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.25s ease;
+        &:hover {
+            transform: translateY(-1px);
+            opacity: 0.92;
+        }
+    }
+}
