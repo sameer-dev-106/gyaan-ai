@@ -26,9 +26,9 @@ export async function getMemory(req, res, next) {
  */
 export async function updatePreferences(req, res, next) {
     try {
-        const { fullName, profession, location, language, responseStyle, interests } = req.body;
+        const { fullName, dateOfBirth, profession, location, language, responseStyle, interests } = req.body;
         const memory = await updateUserPreferences(req.user.id, {
-            fullName, profession, location, language, responseStyle, interests,
+            fullName, dateOfBirth, profession, location, language, responseStyle, interests,
         });
         res.status(200).json({ success: true, message: "Preferences updated!", memory });
     } catch (err) {
