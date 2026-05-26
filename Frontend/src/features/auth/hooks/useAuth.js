@@ -3,23 +3,21 @@ import { registerApi, loginApi, getMeApi, logoutApi } from "../services/auth.api
 import { setUser, setLoading, setError, setInitialized } from "../auth.slice";
 
 export const useAuth = () => {
-
-    const dispatch = useDispatch()
+    const dispatch = useDispatch();
 
     const handleRegister = async ({ username, email, password }) => {
         dispatch(setLoading(true));
         try {
-            const response = await registerApi(username, email, password);
-            const user = response?.data?.user;
-            if (user) dispatch(setUser(user));
-            return { success: true, user: user };
+            const response = await registerApi({ username, email, password });
+            return { success: true };
         } catch (err) {
-            dispatch(setError(err.response?.data?.message || "Registration failed"))
-            return { success: false, error: err }
+            const message = typeof err === "string" ? err : err?.message || "Registration failed";
+            dispatch(setError(message));
+            return { success: false, error: message };
         } finally {
-            dispatch(setLoading(false))
+            dispatch(setLoading(false));
         }
-    }
+    };
 
     const handleLogin = async ({ email, password }) => {
         dispatch(setLoading(true));
@@ -27,43 +25,44 @@ export const useAuth = () => {
             const response = await loginApi(email, password);
             const user = response?.data?.user;
             if (user) dispatch(setUser(user));
-            return { success: true, user: user }
+            return { success: true, user };
         } catch (err) {
-            return { success: false, error: err }
+            const message = typeof err === "string" ? err : err?.message || "Login failed";
+            return { success: false, error: message };
         } finally {
-            dispatch(setLoading(false))
+            dispatch(setLoading(false));
         }
-    }
+    };
 
     const handleGetMe = async () => {
         try {
-            dispatch(setLoading(true))
+            dispatch(setLoading(true));
             const response = await getMeApi();
             const user = response?.data?.user;
             if (user) dispatch(setUser(user));
-            return user ?? null
+            return user ?? null;
         } catch {
-            dispatch(setUser(null))
-            return null
+            dispatch(setUser(null));
+            return null;
         } finally {
-            dispatch(setLoading(false))
-            dispatch(setInitialized(true))
+            dispatch(setLoading(false));
+            dispatch(setInitialized(true));
         }
-    }
+    };
 
     const handleLogout = async () => {
         try {
-            await logoutApi()
-            dispatch(setUser(null))
+            await logoutApi();
+            dispatch(setUser(null));
         } catch (err) {
-            console.error('Logout failed:', err)
+            console.error("Logout failed:", err);
         }
-    }
+    };
 
     return {
         handleLogin,
         handleRegister,
         handleGetMe,
         handleLogout,
-    }
-}
+    };
+};
