@@ -3,9 +3,9 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Sparkles, Trash2, Pencil, Check, X } from "lucide-react";
 import { useDispatch } from "react-redux";
-import { deleteMessage, updateMessage } from "../chat.slice";
+import { updateMessage } from "../chat.slice";
 
-const MessageItem = ({ msg, msgIndex, currentChatId }) => {
+const MessageItem = ({ msg, msgIndex, currentChatId, onDeleteMessage }) => {
   const dispatch = useDispatch();
   const [hovered, setHovered] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -16,24 +16,22 @@ const MessageItem = ({ msg, msgIndex, currentChatId }) => {
     if (editing && textareaRef.current) {
       textareaRef.current.focus();
       textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height =
-        textareaRef.current.scrollHeight + "px";
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + "px";
     }
   }, [editing]);
 
   const handleDelete = () => {
-    dispatch(deleteMessage({ chatId: currentChatId, msgIndex }));
+    if (!msg._id) return; 
+    onDeleteMessage({
+      chatId: currentChatId,
+      messageId: msg._id,
+      msgIndex,
+    });
   };
 
   const handleEditSave = () => {
     if (editContent.trim() && editContent.trim() !== msg.content) {
-      dispatch(
-        updateMessage({
-          chatId: currentChatId,
-          msgIndex,
-          content: editContent.trim(),
-        }),
-      );
+      dispatch(updateMessage({ chatId: currentChatId, msgIndex, content: editContent.trim() }));
     }
     setEditing(false);
   };
@@ -81,18 +79,10 @@ const MessageItem = ({ msg, msgIndex, currentChatId }) => {
               rows={1}
             />
             <div className="edit-actions">
-              <button
-                className="edit-action-btn confirm"
-                onClick={handleEditSave}
-                title="Save (Enter)"
-              >
+              <button className="edit-action-btn confirm" onClick={handleEditSave} title="Save (Enter)">
                 <Check size={13} />
               </button>
-              <button
-                className="edit-action-btn cancel"
-                onClick={handleEditCancel}
-                title="Cancel (Esc)"
-              >
+              <button className="edit-action-btn cancel" onClick={handleEditCancel} title="Cancel (Esc)">
                 <X size={13} />
               </button>
             </div>
@@ -103,18 +93,10 @@ const MessageItem = ({ msg, msgIndex, currentChatId }) => {
               <ReactMarkdown
                 components={{
                   p: ({ children }) => <p className="markdown-p">{children}</p>,
-                  ul: ({ children }) => (
-                    <ul className="markdown-ul">{children}</ul>
-                  ),
-                  ol: ({ children }) => (
-                    <ol className="markdown-ol">{children}</ol>
-                  ),
-                  code: ({ children }) => (
-                    <code className="markdown-code">{children}</code>
-                  ),
-                  pre: ({ children }) => (
-                    <pre className="markdown-pre">{children}</pre>
-                  ),
+                  ul: ({ children }) => <ul className="markdown-ul">{children}</ul>,
+                  ol: ({ children }) => <ol className="markdown-ol">{children}</ol>,
+                  code: ({ children }) => <code className="markdown-code">{children}</code>,
+                  pre: ({ children }) => <pre className="markdown-pre">{children}</pre>,
                 }}
                 remarkPlugins={[remarkGfm]}
               >
@@ -126,7 +108,6 @@ const MessageItem = ({ msg, msgIndex, currentChatId }) => {
           </div>
         )}
 
-        {/* Action buttons - streaming ke time nahi dikhenge */}
         {!editing && !msg.isStreaming && hovered && (
           <div className={`msg-actions ${msg.role}`}>
             {msg.role === "user" && (
@@ -138,13 +119,15 @@ const MessageItem = ({ msg, msgIndex, currentChatId }) => {
                 <Pencil size={12} />
               </button>
             )}
-            <button
-              className="msg-action-btn delete"
-              onClick={handleDelete}
-              title="Delete message"
-            >
-              <Trash2 size={12} />
-            </button>
+            {msg._id && (
+              <button
+                className="msg-action-btn delete"
+                onClick={handleDelete}
+                title={msg.role === "user" ? "Delete this and all messages after it" : "Delete message"}
+              >
+                <Trash2 size={12} />
+              </button>
+            )}
           </div>
         )}
       </div>
