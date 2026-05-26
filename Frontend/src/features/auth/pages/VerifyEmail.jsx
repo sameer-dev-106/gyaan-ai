@@ -75,7 +75,7 @@ const VerifyEmail = () => {
             {[
               "Open the email from Gyaan AI",
               'Click the "Verify Email" link',
-              "Come back here and log in",
+              "Come back and complete your profile",
             ].map((step, i) => (
               <div
                 key={i}
@@ -107,10 +107,7 @@ const VerifyEmail = () => {
                   {i + 1}
                 </span>
                 <span
-                  style={{
-                    color: "rgba(239,158,158,0.8)",
-                    fontSize: "14px",
-                  }}
+                  style={{ color: "rgba(239,158,158,0.8)", fontSize: "14px" }}
                 >
                   {step}
                 </span>
@@ -128,30 +125,26 @@ const VerifyEmail = () => {
               marginBottom: "24px",
             }}
           >
-            ⚠️ Without email verification, you won't be able to log in.
-            Check your spam folder if you don't see the email.
+            ⚠️ Without email verification, you won't be able to log in. Check
+            your spam folder if you don't see the email.
           </p>
 
-          <Link to="/login" style={{ display: "block" }}>
+          {/* Primary CTA: Go to Login */}
+          <Link to="/login" style={{ display: "block", marginBottom: 10 }}>
             <button
               style={{
                 width: "100%",
-                padding: "12px",
-                borderRadius: "8px",
-                background: "rgba(243,57,57,0.1)",
-                border: "1px solid rgba(243,57,57,0.3)",
-                color: "#f33939",
+                padding: "13px",
+                borderRadius: "10px",
+                background: "linear-gradient(135deg, #f33939 0%, #802222 100%)",
+                border: "none",
+                color: "white",
                 fontSize: "14px",
-                fontWeight: 500,
+                fontWeight: 600,
                 cursor: "pointer",
-                transition: "all 0.2s ease",
                 fontFamily: "'Geist', system-ui, sans-serif",
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.background = "rgba(243,57,57,0.2)";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background = "rgba(243,57,57,0.1)";
+                boxShadow: "0 4px 20px rgba(243,57,57,0.3)",
+                transition: "all 0.2s ease",
               }}
             >
               Go to Login →
