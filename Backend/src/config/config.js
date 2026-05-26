@@ -30,5 +30,6 @@ export const config = {
     FRONTEND_URL: process.env.FRONTEND_URL,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     MISTRAL_API_KEY: process.env.MISTRAL_API_KEY,
-    TAVILY_API_KEY: process.env.TAVILY_API_KEY
+    TAVILY_API_KEY: process.env.TAVILY_API_KEY,
+    RESEND_API_KEY: process.env.RESEND_API_KEY
 }
