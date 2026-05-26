@@ -87,7 +87,7 @@ Return ONLY valid JSON, no explanation.`;
 export async function updateUserPreferences(userId, preferences) {
     const memory = await getOrCreateMemory(userId);
 
-    const allowed = ['fullName', 'profession', 'location', 'language', 'responseStyle', 'interests'];
+    const allowed = ['fullName', 'dateOfBirth', 'profession', 'location', 'language', 'responseStyle', 'interests'];
     allowed.forEach(key => {
         if (preferences[key] !== undefined) {
             memory.preferences[key] = preferences[key];
