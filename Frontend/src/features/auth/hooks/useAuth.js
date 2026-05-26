@@ -1,5 +1,5 @@
 import { useDispatch } from "react-redux";
-import { registerApi, loginApi, getMeApi, logoutApi } from "../services/auth.api";
+import { registerApi, loginApi, verifyEmailApi, getMeApi, logoutApi } from "../services/auth.api";
 import { setUser, setLoading, setError, setInitialized } from "../auth.slice";
 
 export const useAuth = () => {
@@ -8,7 +8,7 @@ export const useAuth = () => {
     const handleRegister = async ({ username, email, password }) => {
         dispatch(setLoading(true));
         try {
-            const response = await registerApi({ username, email, password });
+            await registerApi({ username, email, password });
             return { success: true };
         } catch (err) {
             const message = typeof err === "string" ? err : err?.message || "Registration failed";
@@ -28,6 +28,21 @@ export const useAuth = () => {
             return { success: true, user };
         } catch (err) {
             const message = typeof err === "string" ? err : err?.message || "Login failed";
+            return { success: false, error: message };
+        } finally {
+            dispatch(setLoading(false));
+        }
+    };
+
+    const handleVerifyEmail = async (token) => {
+        dispatch(setLoading(true));
+        try {
+            const response = await verifyEmailApi(token);
+            return { success: true, alreadyVerified: response?.data?.alreadyVerified ?? false };
+        } catch (err) {
+            const message =
+                typeof err === "string" ? err : err?.message || "Verification failed";
+            dispatch(setError(message));
             return { success: false, error: message };
         } finally {
             dispatch(setLoading(false));
@@ -62,6 +77,7 @@ export const useAuth = () => {
     return {
         handleLogin,
         handleRegister,
+        handleVerifyEmail,
         handleGetMe,
         handleLogout,
     };
