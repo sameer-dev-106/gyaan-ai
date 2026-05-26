@@ -10,12 +10,11 @@ const API = axios.create({
 export const sendMessageApi = async ({ message, chatId }) => {
     try {
         const response = await API.post("/message", { message, chat: chatId });
-        console.log(response)
         return { success: true, data: response.data };
     } catch (err) {
         throw err.response?.data?.message || "Something went wrong";
     }
-}
+};
 
 export const getChatsApi = async () => {
     try {
@@ -24,7 +23,7 @@ export const getChatsApi = async () => {
     } catch (err) {
         throw err.response?.data?.message || "Something went wrong";
     }
-}
+};
 
 export const getMessagesApi = async (chatId) => {
     try {
@@ -33,7 +32,7 @@ export const getMessagesApi = async (chatId) => {
     } catch (err) {
         throw err.response?.data?.message || "Something went wrong";
     }
-}
+};
 
 export const deleteChatApi = async ({ chatId }) => {
     try {
@@ -42,5 +41,13 @@ export const deleteChatApi = async ({ chatId }) => {
     } catch (err) {
         throw err.response?.data?.message || "Something went wrong";
     }
-}
+};
 
+export const deleteMessageFromApi = async ({ chatId, messageId }) => {
+    try {
+        const response = await API.delete(`/${chatId}/messages/${messageId}`);
+        return { success: true, data: response.data };
+    } catch (err) {
+        throw err.response?.data?.message || "Something went wrong";
+    }
+};
