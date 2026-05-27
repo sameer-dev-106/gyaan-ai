@@ -15,6 +15,7 @@ yarn-error.log*
 
 # Build folders
 Frontend/dist/
+Backend/public/
 build/
 
 # OS files
