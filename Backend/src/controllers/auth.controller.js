@@ -35,108 +35,68 @@ export const register = async (req, res, next) => {
 
         const user = await userModel.create({ username, email, password });
 
-        // Token has no expiry by default — add one for security
         const emailVerificationToken = jwt.sign(
             { email: user.email },
             config.JWT_SECRET,
-            { expiresIn: "24h" }   // token expires in 24 hours
+            { expiresIn: "24h" }
         );
 
-        // Link points to the FRONTEND verification page (not the backend route)
         const verifyUrl = `${config.FRONTEND_URL}/verify-email?token=${emailVerificationToken}`;
 
         await sendEmail({
             to: email,
             subject: "Verify your Gyaan AI account",
             html: `
-                <!DOCTYPE html>
-                <html>
+            < !DOCTYPE html>
+            <html>
                 <head>
-                  <meta charset="UTF-8" />
-                  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+                    <meta charset="UTF-8" />
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
                 </head>
-                <body style="margin:0;padding:0;background:#0f0f0f;font-family:'Segoe UI',system-ui,sans-serif;">
-                  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f0f0f;padding:40px 0;">
-                    <tr>
-                      <td align="center">
-                        <table width="520" cellpadding="0" cellspacing="0"
-                          style="background:#141414;border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;">
-                          <!-- Header -->
-                          <tr>
-                            <td style="background:linear-gradient(135deg,#1a0a0a 0%,#1f1010 100%);
-                                        border-bottom:1px solid rgba(243,57,57,0.2);
-                                        padding:32px 40px;text-align:center;">
-                              <div style="font-size:28px;font-weight:800;
-                                          background:linear-gradient(135deg,#f33939,#ff6b6b);
-                                          -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-                                          background-clip:text;letter-spacing:-0.5px;">
-                                Gyaan AI
-                              </div>
-                              <p style="margin:8px 0 0;color:rgba(255,255,255,0.4);font-size:13px;">
-                                Intelligent Learning Platform
-                              </p>
+                <body style="margin:0;padding:0;background:#f5f5f5;font-family:'Segoe UI',Arial,sans-serif;">
+                    <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 16px;">
+                        <tr>
+                            <td align="center">
+                                <table width="460" cellpadding="0" cellspacing="0"
+                                    style="background:#fff;border-radius:10px;border:1px solid #e5e5e5;">
+
+                                    <tr>
+                                        <td style="padding:28px 36px 20px;border-bottom:1px solid #f0f0f0;">
+                                            <p style="margin:0;font-size:20px;font-weight:700;color:#e53e3e;">Gyaan AI</p>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td style="padding:28px 36px;">
+                                            <p style="margin:0 0 6px;font-size:18px;font-weight:600;color:#111;">Verify your email</p>
+                                            <p style="margin:0 0 24px;font-size:14px;color:#666;line-height:1.6;">
+                                                Hi <strong>${username}</strong>, click the button below to verify your email and activate your Gyaan AI account.
+                                            </p>
+                                            <a href="${verifyUrl}"
+                                                style="display:inline-block;padding:12px 28px;background:#e53e3e;color:#fff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600;"
+                                                > Verify Email
+                                            </a>
+                                            <p style="margin:24px 0 0;font-size:12px;color:#999;line-height:1.5;">
+                                                Link not working? Copy and paste this in your browser:<br />
+                                                <a href="${verifyUrl}" style="color:#e53e3e;word-break:break-all;">${verifyUrl}</a>
+                                            </p>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td style="padding:16px 36px;border-top:1px solid #f0f0f0;">
+                                            <p style="margin:0;font-size:11px;color:#bbb;">
+                                                Link expires in 24 hours &nbsp;·&nbsp; If you didn't sign up, ignore this email.
+                                            </p>
+                                        </td>
+                                    </tr>
+
+                                </table>
                             </td>
-                          </tr>
-                          <!-- Body -->
-                          <tr>
-                            <td style="padding:40px;">
-                              <h2 style="margin:0 0 12px;color:#fff;font-size:22px;font-weight:700;
-                                          letter-spacing:-0.3px;">
-                                Verify your email address
-                              </h2>
-                              <p style="margin:0 0 24px;color:rgba(255,255,255,0.55);font-size:15px;line-height:1.7;">
-                                Hi <strong style="color:rgba(255,255,255,0.85);">${username}</strong>, 
-                                welcome to Gyaan AI! Click the button below to verify your email and 
-                                activate your account.
-                              </p>
-                              <!-- CTA Button -->
-                              <table width="100%" cellpadding="0" cellspacing="0">
-                                <tr>
-                                  <td align="center" style="padding:8px 0 32px;">
-                                    <a href="${verifyUrl}"
-                                       style="display:inline-block;padding:14px 36px;
-                                              background:linear-gradient(135deg,#f33939,#c72323);
-                                              color:#fff;text-decoration:none;border-radius:10px;
-                                              font-size:15px;font-weight:600;letter-spacing:0.2px;
-                                              box-shadow:0 4px 20px rgba(243,57,57,0.35);">
-                                      Verify My Email →
-                                    </a>
-                                  </td>
-                                </tr>
-                              </table>
-                              <!-- Fallback link -->
-                              <p style="margin:0 0 8px;color:rgba(255,255,255,0.35);font-size:12px;">
-                                Button not working? Copy and paste this link into your browser:
-                              </p>
-                              <p style="margin:0 0 24px;word-break:break-all;
-                                          color:rgba(243,57,57,0.7);font-size:12px;">
-                                ${verifyUrl}
-                              </p>
-                              <!-- Warning -->
-                              <div style="background:rgba(243,57,57,0.06);border:1px solid rgba(243,57,57,0.15);
-                                           border-radius:8px;padding:14px 16px;">
-                                <p style="margin:0;color:rgba(255,255,255,0.45);font-size:12px;line-height:1.6;">
-                                  ⏱ This link expires in <strong style="color:rgba(255,255,255,0.65);">24 hours</strong>. 
-                                  If you didn't create an account with Gyaan AI, you can safely ignore this email.
-                                </p>
-                              </div>
-                            </td>
-                          </tr>
-                          <!-- Footer -->
-                          <tr>
-                            <td style="border-top:1px solid rgba(255,255,255,0.06);
-                                        padding:20px 40px;text-align:center;">
-                              <p style="margin:0;color:rgba(255,255,255,0.25);font-size:12px;">
-                                © ${new Date().getFullYear()} Gyaan AI · All rights reserved
-                              </p>
-                            </td>
-                          </tr>
-                        </table>
-                      </td>
-                    </tr>
-                  </table>
+                        </tr>
+                    </table>
                 </body>
-                </html>
+            </html>
             `
         });
 
@@ -195,7 +155,6 @@ export async function verifyEmail(req, res, next) {
         }
 
         if (user.verified) {
-            // Already verified — still a success from the user's perspective
             return res.status(200).json({
                 message: "Email is already verified. You can log in.",
                 success: true,
@@ -263,7 +222,8 @@ export const login = async (req, res, next) => {
             user: {
                 id: user._id,
                 username: user.username,
-                email: user.email
+                email: user.email,
+                profileCompleted: user.profileCompleted
             }
         });
     } catch (err) {
@@ -334,7 +294,7 @@ export async function updateProfile(req, res, next) {
         }
         const user = await userModel.findByIdAndUpdate(
             userId,
-            { username: username.trim() },
+            { username: username.trim(), profileCompleted: true },
             { new: true }
         ).select("-password");
         res.status(200).json({ message: "Profile updated successfully", success: true, user });
