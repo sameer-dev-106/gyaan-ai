@@ -42,6 +42,10 @@ const userSchema = new mongoose.Schema(
             enum: ["free", "pro"],
             default: "free",
         },
+        profileCompleted: {
+            type: Boolean,
+            default: false,
+        },
     },
     { timestamps: true }
 );
