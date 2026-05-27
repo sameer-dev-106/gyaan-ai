@@ -3,6 +3,7 @@ import {
     updateUserPreferences,
     clearUserFacts,
 } from "../services/memory.service.js";
+import userModel from "../models/user.model.js";
 
 /**
  * @route GET /api/memory
@@ -30,6 +31,7 @@ export async function updatePreferences(req, res, next) {
         const memory = await updateUserPreferences(req.user.id, {
             fullName, dateOfBirth, profession, location, language, responseStyle, interests,
         });
+        await userModel.findByIdAndUpdate(req.user.id, { profileCompleted: true });
         res.status(200).json({ success: true, message: "Preferences updated!", memory });
     } catch (err) {
         next(err);
