@@ -1,47 +1,51 @@
 # 🧠 Gyaan AI
 
-A full-stack AI-powered chat application that lets you have intelligent conversations with an AI assistant. Gyaan AI uses **Mistral AI** as the primary LLM with **internet search capabilities** via Tavily, so it can answer both general and up-to-date questions.
+A full-stack AI-powered chat application built with React and Node.js. Gyaan AI uses **Mistral AI** as the primary LLM with real-time **internet search** via Tavily, persistent **AI memory** that learns about you over time, and a complete **PWA** experience.
 
 ---
 
 ## ✨ Features
 
-- 🤖 **AI Chat** — Conversational AI powered by Mistral AI (`mistral-small-latest`)
-- 🌐 **Internet Search** — AI can search the web in real-time using Tavily for current information
-- 🔐 **Authentication** — Register, login, and email verification system
-- 💬 **Chat History** — All conversations are saved per user
-- 🏷️ **Auto Titles** — Chat titles are auto-generated from the first message
-- ⚡ **Real-time** — Socket.IO integration for live communication
-- 📱 **Responsive UI** — Clean React frontend with SCSS styling
+- 🤖 **AI Chat** — Powered by Mistral AI (`mistral-small-latest`) with LangChain orchestration
+- 🌐 **Internet Search** — AI searches the web in real-time via Tavily for current information
+- 🧠 **AI Memory** — Remembers facts about you across conversations; learns your preferences over time
+- 👤 **Complete Profile** — Set your name, profession, location, language preference, and AI response style
+- 🔐 **Authentication** — Register, email verification (via Resend), login with JWT cookies
+- 💬 **Chat History** — All conversations saved per user with auto-generated titles
+- ⚡ **Real-time** — Socket.IO for live message streaming
+- 📱 **PWA** — Installable as a native-like app on desktop and mobile
+- ⚙️ **Settings** — Change username, password, clear AI memory
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### Backend
+
 | Technology | Purpose |
 |---|---|
 | Node.js + Express 5 | REST API server |
 | MongoDB + Mongoose | Database |
 | Socket.IO | Real-time communication |
-| LangChain | AI orchestration framework |
-| Mistral AI (`mistral-small-latest`) | Main AI model |
-| Google Gemini (`gemini-2.5-flash-lite`) | Secondary AI model |
-| Tavily | Internet search tool |
-| JWT | Authentication tokens |
-| Nodemailer | Email verification |
-| bcryptjs | Password hashing |
+| LangChain | AI orchestration |
+| Mistral AI (`mistral-small-latest`) | Primary AI model |
+| Google Gemini (`gemini-2.5-flash-lite`) | Secondary AI model (chat titles) |
+| Tavily | Real-time web search tool |
+| Resend | Transactional email (verification) |
+| JWT + bcryptjs | Auth tokens + password hashing |
 
 ### Frontend
+
 | Technology | Purpose |
 |---|---|
 | React 19 + Vite | UI framework |
-| Redux Toolkit | State management |
+| Redux Toolkit | Global state management |
 | React Router v7 | Client-side routing |
 | Socket.IO Client | Real-time updates |
 | React Markdown + remark-gfm | Render AI markdown responses |
-| SCSS | Styling |
+| SCSS Modules | Component styling |
 | Lucide React | Icons |
+| Vite PWA Plugin | Service worker + installability |
 
 ---
 
@@ -50,40 +54,60 @@ A full-stack AI-powered chat application that lets you have intelligent conversa
 ```
 Gyaan AI/
 ├── Backend/
-│   ├── server.js                  # Entry point
+│   ├── server.js
+│   ├── public/                        # Built frontend (served by Express)
 │   └── src/
-│       ├── app.js                 # Express app setup
+│       ├── app.js                     # Express app setup
 │       ├── config/
-│       │   ├── config.js          # Environment variables
-│       │   └── database.js        # MongoDB connection
+│       │   ├── config.js              # Environment variable exports
+│       │   └── database.js            # MongoDB connection
 │       ├── controllers/
-│       │   ├── auth.controller.js # Register, login, verify email
-│       │   └── chat.controller.js # Send message, get chats/messages, delete
+│       │   ├── auth.controller.js     # Register, login, verify, profile, password
+│       │   ├── chat.controller.js     # Send message, get chats/messages, delete
+│       │   └── memory.controller.js   # Get memory, update preferences, clear facts
 │       ├── middlewares/
-│       │   ├── auth.middleware.js  # JWT verification
-│       │   └── error.middleware.js # Global error handler
+│       │   ├── auth.middleware.js     # JWT cookie verification
+│       │   └── error.middleware.js    # Global error handler
 │       ├── models/
-│       │   ├── user.model.js
+│       │   ├── user.model.js          # User schema (profileCompleted flag included)
 │       │   ├── chat.model.js
-│       │   └── message.model.js
+│       │   ├── message.model.js
+│       │   └── usermemory.model.js    # AI memory (preferences + facts)
 │       ├── routes/
 │       │   ├── auth.routes.js
-│       │   └── chat.routes.js
+│       │   ├── chat.routes.js
+│       │   └── memory.routes.js
 │       ├── services/
-│       │   ├── ai.service.js      # LangChain agent + Mistral AI
-│       │   ├── internet.service.js # Tavily web search
-│       │   └── mail.service.js    # Email via Nodemailer
+│       │   ├── ai.service.js          # LangChain agent + tools
+│       │   ├── internet.service.js    # Tavily web search
+│       │   ├── memory.service.js      # Memory CRUD helpers
+│       │   └── mail.service.js        # Resend email
 │       ├── socket/
-│       │   └── server.socket.js   # Socket.IO setup
+│       │   └── server.socket.js       # Socket.IO setup
 │       └── validators/
-│           └── auth.validator.js  # Input validation
+│           └── auth.validator.js      # express-validator rules
+│
 └── Frontend/
     └── src/
-        ├── app/                   # App entry, routes, store
+        ├── app/                       # Router, Redux store, global styles
         ├── features/
-        │   ├── auth/              # Login, Register pages + auth slice
-        │   └── chats/             # Dashboard, chat UI + chat slice
-        └── shared/                # Global styles, mixins, variables
+        │   ├── auth/
+        │   │   ├── pages/             # Login, Register, VerifyEmail, CheckInbox, CompleteProfile
+        │   │   ├── components/        # AuthLeft, Protected
+        │   │   ├── hooks/             # useAuth
+        │   │   ├── services/          # auth.api.js
+        │   │   └── auth.slice.js
+        │   ├── chats/
+        │   │   ├── pages/             # Dashboard
+        │   │   ├── components/        # Sidebar, Topbar, MessageItem, InputArea, InstallPWA, ...
+        │   │   ├── hooks/             # useChat
+        │   │   ├── services/          # chat.api.js, chat.socket.js
+        │   │   └── chat.slice.js
+        │   └── settings/
+        │       ├── pages/             # Settings
+        │       ├── services/          # memory.api.js
+        │       └── setting.slice.js
+        └── shared/                    # Toast, global SCSS, variables, mixins
 ```
 
 ---
@@ -91,9 +115,10 @@ Gyaan AI/
 ## ⚙️ Setup & Installation
 
 ### Prerequisites
+
 - Node.js v18+
 - MongoDB (local or Atlas)
-- API Keys: Mistral AI, Google Gemini, Tavily, Google OAuth (for email)
+- API keys: Mistral AI, Google Gemini, Tavily, Resend
 
 ### 1. Clone the repository
 
@@ -109,7 +134,7 @@ cd Backend
 npm install
 ```
 
-Create a `.env` file in the `Backend/` directory:
+Create a `.env` file in `Backend/`:
 
 ```env
 # Server
@@ -125,16 +150,12 @@ MONGO_URI=mongodb://localhost:27017/gyaan-ai
 JWT_SECRET=your_super_secret_jwt_key
 
 # AI Models
-GEMINI_API_KEY=your_gemini_api_key
 MISTRAL_API_KEY=your_mistral_api_key
+GEMINI_API_KEY=your_gemini_api_key
 TAVILY_API_KEY=your_tavily_api_key
 
-# Google OAuth (for email sending via Nodemailer)
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-GOOGLE_REFRESH_TOKEN=your_google_refresh_token
-GOOGLE_USER_EMAIL=your_gmail_address
-GOOGLE_CALLBACK_URL=http://localhost:3000/api/auth/google/callback
+# Email (Resend)
+RESEND_API_KEY=your_resend_api_key
 ```
 
 Start the backend:
@@ -143,7 +164,7 @@ Start the backend:
 npm run dev
 ```
 
-Backend will run on `http://localhost:3000`
+Backend runs on `http://localhost:3000`
 
 ### 3. Frontend Setup
 
@@ -153,29 +174,57 @@ npm install
 npm run dev
 ```
 
-Frontend will run on `http://localhost:5173`
+Create a `.env` file in `Frontend/`:
+
+```env
+VITE_BACKEND_URL=http://localhost:3000
+```
+
+Frontend runs on `http://localhost:5173`
 
 ---
 
 ## 🔌 API Reference
 
-### Auth Routes (`/api/auth`)
+### Auth Routes — `/api/auth`
 
 | Method | Endpoint | Description | Auth |
 |---|---|---|---|
-| POST | `/register` | Register a new user | ❌ |
-| POST | `/login` | Login and get JWT cookie | ❌ |
-| GET | `/verify-email?token=...` | Verify email address | ❌ |
-| GET | `/get-me` | Get current user info | ✅ |
+| POST | `/register` | Register new user + send verification email | ❌ |
+| POST | `/login` | Login, returns JWT cookie + `profileCompleted` flag | ❌ |
+| GET | `/verify-email?token=` | Verify email via token | ❌ |
+| GET | `/me` | Get current logged-in user | ✅ |
+| POST | `/logout` | Clear JWT cookie | ✅ |
+| PUT | `/update-profile` | Update username | ✅ |
+| PUT | `/change-password` | Change password | ✅ |
 
-### Chat Routes (`/api/chats`)
+### Chat Routes — `/api/chats`
 
 | Method | Endpoint | Description | Auth |
 |---|---|---|---|
-| POST | `/message` | Send a message (creates new chat if no `chatId`) | ✅ |
+| POST | `/message` | Send message (creates chat if no `chatId`) | ✅ |
 | GET | `/` | Get all chats of logged-in user | ✅ |
 | GET | `/:chatId/messages` | Get all messages in a chat | ✅ |
 | DELETE | `/delete/:chatId` | Delete a chat and its messages | ✅ |
+
+### Memory Routes — `/api/memory`
+
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| GET | `/` | Get user's memory (preferences + AI-extracted facts) | ✅ |
+| PUT | `/preferences` | Update profile preferences (also marks `profileCompleted`) | ✅ |
+| DELETE | `/facts` | Clear AI-extracted facts (keep preferences) | ✅ |
+
+---
+
+## 🔄 User Flow
+
+```
+Register → Check Inbox → Verify Email → Login
+    └── First login?
+          ├── profileCompleted = false → /complete-profile → Dashboard
+          └── profileCompleted = true  → Dashboard
+```
 
 ---
 
@@ -183,10 +232,19 @@ Frontend will run on `http://localhost:5173`
 
 1. User sends a message via the frontend
 2. Backend saves the message to MongoDB
-3. The **LangChain agent** (with Mistral AI) processes the full conversation history
-4. If the question needs current information, the agent automatically calls the **Tavily search tool**
-5. The AI response is saved to MongoDB and returned to the frontend
-6. Chat titles are auto-generated using Mistral AI on the first message of each conversation
+3. The **LangChain agent** loads the user's AI memory (preferences + past facts) and full conversation history
+4. If the question needs current info, the agent calls the **Tavily search tool** automatically
+5. AI response is saved to MongoDB and emitted back via Socket.IO
+6. The agent also extracts new facts about the user from the conversation and stores them in memory
+7. Chat titles are auto-generated using Gemini on the first message of each conversation
+
+---
+
+## 📱 PWA — Install as App
+
+Gyaan AI is a fully installable PWA. When you open it in a supported browser (Chrome, Edge, etc.), an **Install App** button appears in the sidebar. Tap it to install directly to your home screen or desktop — no app store needed.
+
+If you uninstall and want to reinstall, just open the browser version again and the install button will reappear.
 
 ---
 
@@ -194,41 +252,40 @@ Frontend will run on `http://localhost:5173`
 
 ### Backend
 ```bash
-npm run dev    # Start with nodemon (hot reload)
+npm run dev      # Start with nodemon (hot reload)
 ```
 
 ### Frontend
 ```bash
-npm run dev      # Start Vite dev server
-npm run build    # Build for production
+npm run dev      # Vite dev server
+npm run build    # Production build → output to Backend/public
 npm run preview  # Preview production build
-npm run lint     # Run ESLint
+npm run lint     # ESLint
 ```
 
 ---
 
-## 📝 Environment Variables Summary
+## 📝 Environment Variables
 
-| Variable | Required | Description |
-|---|---|---|
-| `MONGO_URI` | ✅ | MongoDB connection string |
-| `JWT_SECRET` | ✅ | Secret key for JWT signing |
-| `GEMINI_API_KEY` | ✅ | Google Gemini API key |
-| `MISTRAL_API_KEY` | ✅ | Mistral AI API key |
-| `TAVILY_API_KEY` | ✅ | Tavily search API key |
-| `GOOGLE_CLIENT_ID` | ✅ | Google OAuth client ID (for email) |
-| `GOOGLE_CLIENT_SECRET` | ✅ | Google OAuth client secret |
-| `GOOGLE_REFRESH_TOKEN` | ✅ | Google OAuth refresh token |
-| `GOOGLE_USER_EMAIL` | ✅ | Gmail address for sending emails |
-| `BASE_URL` | ✅ | Backend base URL |
-| `FRONTEND_URL` | ✅ | Frontend URL (for CORS) |
-| `GOOGLE_CALLBACK_URL` | ❌ | Google OAuth callback URL |
+| Variable | Where | Required | Description |
+|---|---|---|---|
+| `MONGO_URI` | Backend | ✅ | MongoDB connection string |
+| `JWT_SECRET` | Backend | ✅ | Secret for JWT signing |
+| `MISTRAL_API_KEY` | Backend | ✅ | Mistral AI API key |
+| `GEMINI_API_KEY` | Backend | ✅ | Google Gemini API key |
+| `TAVILY_API_KEY` | Backend | ✅ | Tavily search API key |
+| `RESEND_API_KEY` | Backend | ✅ | Resend email API key |
+| `BASE_URL` | Backend | ✅ | Backend base URL |
+| `FRONTEND_URL` | Backend | ✅ | Frontend URL (for CORS + email links) |
+| `NODE_ENV` | Backend | ✅ | `development` or `production` |
+| `VITE_BACKEND_URL` | Frontend | ✅ | Backend URL for API calls |
 
 ---
 
 ## 🙏 Acknowledgements
 
-- [LangChain](https://js.langchain.com/) for AI orchestration
-- [Mistral AI](https://mistral.ai/) for the language model
-- [Tavily](https://tavily.com/) for real-time web search
-- [Google Gemini](https://ai.google.dev/) for secondary AI capabilities
+- [LangChain](https://js.langchain.com/) — AI orchestration
+- [Mistral AI](https://mistral.ai/) — Primary language model
+- [Google Gemini](https://ai.google.dev/) — Chat title generation
+- [Tavily](https://tavily.com/) — Real-time web search
+- [Resend](https://resend.com/) — Email delivery
