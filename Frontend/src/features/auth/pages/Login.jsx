@@ -23,7 +23,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setToast(null);
-    const { success, error } = await handleLogin({ email, password });
+    const { success, error, user } = await handleLogin({ email, password });
     if (!success) {
       setToast({
         message: error || "Login failed. Please check your credentials.",
@@ -32,7 +32,11 @@ const Login = () => {
       return;
     }
 
-    navigate("/");
+    if (user && !user.profileCompleted) {
+      navigate("/complete-profile");
+    } else {
+      navigate("/");
+    }
   };
 
   if (!loading && user) {
