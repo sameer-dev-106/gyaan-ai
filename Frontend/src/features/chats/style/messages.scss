@@ -332,3 +332,98 @@
         }
     }
 }
+
+.code-block-wrapper {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 0.75rem;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.code-block-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.code-block-lang {
+    font-size: 11px;
+    font-family: monospace;
+    color: rgba(255, 255, 255, 0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.code-copy-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 11px;
+    font-family: $font;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.07);
+        color: rgba(255, 255, 255, 0.8);
+        border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    svg {
+        flex-shrink: 0;
+    }
+}
+
+.markdown-inline-code {
+    padding: 0.125rem 0.3rem;
+    border-radius: 0.25rem;
+    background: rgba(255, 255, 255, 0.1);
+    font-family: monospace;
+    font-size: 0.88em;
+    color: #f87171;
+}
+
+.mermaid-block {
+    margin-bottom: 0.75rem;
+    padding: 16px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    overflow-x: auto;
+    text-align: center;
+
+    svg {
+        max-width: 100%;
+        height: auto;
+    }
+}
+
+.mermaid-error {
+    border: 1px solid rgba(243, 57, 57, 0.25);
+    color: rgba(243, 57, 57, 0.7);
+    font-size: 12px;
+}
+
+.katex-display {
+    margin: 0.75rem 0 !important;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    overflow-x: auto;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.katex {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1em;
+}
