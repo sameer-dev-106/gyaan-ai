@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "deploy": "vite build && xcopy /E /I /Y dist ..\\Backend\\public",
+    "deploy": "vite build && rm -rf ../Backend/public && mkdir ../Backend/public && cp -r dist/* ../Backend/public",
     "lint": "eslint .",
     "preview": "vite preview"
   },
