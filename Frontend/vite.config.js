@@ -9,6 +9,10 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
 
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+      },
+
       manifest: {
         name: 'Gyaan AI',
         short_name: 'GyaanAI',
@@ -32,5 +36,18 @@ export default defineConfig({
         ]
       }
     })
-  ]
+  ],
+
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-markdown': ['react-markdown', 'remark-gfm', 'remark-math', 'rehype-katex', 'katex'],
+          'vendor-syntax': ['react-syntax-highlighter'],
+          'vendor-mermaid': ['mermaid'],
+        }
+      }
+    }
+  }
 })
