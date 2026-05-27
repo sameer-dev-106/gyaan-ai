@@ -37,6 +37,11 @@ app.get("/", (req, res) => {
     res.json({ message: "server is running" });
 });
 
+// Health check for cron-job ping
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok' });
+});
+
 // Routes
 app.use("/api/auth", authRouter);
 app.use("/api/chats", chatRouter);
