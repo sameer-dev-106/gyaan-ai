@@ -1,9 +1,91 @@
 import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Sparkles, Trash2, Pencil, Check, X } from "lucide-react";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import mermaid from "mermaid";
+import { Sparkles, Trash2, Pencil, Check, X, Copy, CheckCheck } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { updateMessage } from "../chat.slice";
+import "katex/dist/katex.min.css";
+
+mermaid.initialize({ startOnLoad: false, theme: "dark", securityLevel: "loose" });
+
+const MermaidBlock = ({ code }) => {
+  // eslint-disable-next-line no-unused-vars
+  const ref = useRef(null);
+  const [svg, setSvg] = useState("");
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const render = async () => {
+      try {
+        const id = `mermaid-${Math.random().toString(36).slice(2)}`;
+        const { svg } = await mermaid.render(id, code);
+        setSvg(svg);
+        setError(false);
+      } catch {
+        setError(true);
+      }
+    };
+    render();
+  }, [code]);
+
+  if (error) return (
+    <pre className="markdown-pre mermaid-error">
+      <code>{code}</code>
+    </pre>
+  );
+
+  return (
+    <div
+      className="mermaid-block"
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  );
+};
+
+const CodeBlock = ({ children, className }) => {
+  const [copied, setCopied] = useState(false);
+  const language = className?.replace("language-", "") || "";
+  const code = String(children).replace(/\n$/, "");
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (language === "mermaid") return <MermaidBlock code={code} />;
+
+  return (
+    <div className="code-block-wrapper">
+      <div className="code-block-header">
+        <span className="code-block-lang">{language || "code"}</span>
+        <button className="code-copy-btn" onClick={handleCopy} title="Copy code">
+          {copied ? <CheckCheck size={13} /> : <Copy size={13} />}
+          <span>{copied ? "Copied!" : "Copy"}</span>
+        </button>
+      </div>
+      <SyntaxHighlighter
+        language={language || "text"}
+        style={oneDark}
+        customStyle={{
+          margin: 0,
+          borderRadius: "0 0 10px 10px",
+          background: "rgba(0,0,0,0.45)",
+          fontSize: "13px",
+          lineHeight: "1.6",
+        }}
+        codeTagProps={{ style: { fontFamily: "monospace" } }}
+      >
+        {code}
+      </SyntaxHighlighter>
+    </div>
+  );
+};
 
 const MessageItem = ({ msg, msgIndex, currentChatId, onDeleteMessage }) => {
   const dispatch = useDispatch();
@@ -21,12 +103,8 @@ const MessageItem = ({ msg, msgIndex, currentChatId, onDeleteMessage }) => {
   }, [editing]);
 
   const handleDelete = () => {
-    if (!msg._id) return; 
-    onDeleteMessage({
-      chatId: currentChatId,
-      messageId: msg._id,
-      msgIndex,
-    });
+    if (!msg._id) return;
+    onDeleteMessage({ chatId: currentChatId, messageId: msg._id, msgIndex });
   };
 
   const handleEditSave = () => {
@@ -42,13 +120,8 @@ const MessageItem = ({ msg, msgIndex, currentChatId, onDeleteMessage }) => {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleEditSave();
-    }
-    if (e.key === "Escape") {
-      handleEditCancel();
-    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleEditSave(); }
+    if (e.key === "Escape") handleEditCancel();
   };
 
   return (
@@ -91,14 +164,18 @@ const MessageItem = ({ msg, msgIndex, currentChatId, onDeleteMessage }) => {
           <div className="bubble">
             {msg.role === "ai" ? (
               <ReactMarkdown
+                remarkPlugins={[remarkGfm, remarkMath]}
+                rehypePlugins={[rehypeKatex]}
                 components={{
                   p: ({ children }) => <p className="markdown-p">{children}</p>,
                   ul: ({ children }) => <ul className="markdown-ul">{children}</ul>,
                   ol: ({ children }) => <ol className="markdown-ol">{children}</ol>,
-                  code: ({ children }) => <code className="markdown-code">{children}</code>,
-                  pre: ({ children }) => <pre className="markdown-pre">{children}</pre>,
+                  code: ({ inline, className, children }) =>
+                    inline
+                      ? <code className="markdown-inline-code">{children}</code>
+                      : <CodeBlock className={className}>{children}</CodeBlock>,
+                  pre: ({ children }) => <>{children}</>,
                 }}
-                remarkPlugins={[remarkGfm]}
               >
                 {msg.content}
               </ReactMarkdown>
@@ -111,11 +188,7 @@ const MessageItem = ({ msg, msgIndex, currentChatId, onDeleteMessage }) => {
         {!editing && !msg.isStreaming && hovered && (
           <div className={`msg-actions ${msg.role}`}>
             {msg.role === "user" && (
-              <button
-                className="msg-action-btn edit"
-                onClick={() => setEditing(true)}
-                title="Edit message"
-              >
+              <button className="msg-action-btn edit" onClick={() => setEditing(true)} title="Edit message">
                 <Pencil size={12} />
               </button>
             )}
