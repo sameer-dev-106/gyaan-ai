@@ -1,51 +1,24 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, Suspense, lazy } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-import mermaid from "mermaid";
-import { Sparkles, Trash2, Pencil, Check, X, Copy, CheckCheck } from "lucide-react";
+import {
+  Sparkles,
+  Trash2,
+  Pencil,
+  Check,
+  X,
+  Copy,
+  CheckCheck,
+} from "lucide-react";
 import { useDispatch } from "react-redux";
 import { updateMessage } from "../chat.slice";
 import "katex/dist/katex.min.css";
 
-mermaid.initialize({ startOnLoad: false, theme: "dark", securityLevel: "loose" });
-
-const MermaidBlock = ({ code }) => {
-  // eslint-disable-next-line no-unused-vars
-  const ref = useRef(null);
-  const [svg, setSvg] = useState("");
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    const render = async () => {
-      try {
-        const id = `mermaid-${Math.random().toString(36).slice(2)}`;
-        const { svg } = await mermaid.render(id, code);
-        setSvg(svg);
-        setError(false);
-      } catch {
-        setError(true);
-      }
-    };
-    render();
-  }, [code]);
-
-  if (error) return (
-    <pre className="markdown-pre mermaid-error">
-      <code>{code}</code>
-    </pre>
-  );
-
-  return (
-    <div
-      className="mermaid-block"
-      dangerouslySetInnerHTML={{ __html: svg }}
-    />
-  );
-};
+const MermaidBlock = lazy(() => import("./MermaidBlock"));
 
 const CodeBlock = ({ children, className }) => {
   const [copied, setCopied] = useState(false);
@@ -58,13 +31,24 @@ const CodeBlock = ({ children, className }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (language === "mermaid") return <MermaidBlock code={code} />;
+  if (language === "mermaid")
+    return (
+      <Suspense
+        fallback={<div className="mermaid-loading">Loading diagram...</div>}
+      >
+        <MermaidBlock code={code} />
+      </Suspense>
+    );
 
   return (
     <div className="code-block-wrapper">
       <div className="code-block-header">
         <span className="code-block-lang">{language || "code"}</span>
-        <button className="code-copy-btn" onClick={handleCopy} title="Copy code">
+        <button
+          className="code-copy-btn"
+          onClick={handleCopy}
+          title="Copy code"
+        >
           {copied ? <CheckCheck size={13} /> : <Copy size={13} />}
           <span>{copied ? "Copied!" : "Copy"}</span>
         </button>
@@ -98,7 +82,8 @@ const MessageItem = ({ msg, msgIndex, currentChatId, onDeleteMessage }) => {
     if (editing && textareaRef.current) {
       textareaRef.current.focus();
       textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + "px";
+      textareaRef.current.style.height =
+        textareaRef.current.scrollHeight + "px";
     }
   }, [editing]);
 
@@ -109,7 +94,13 @@ const MessageItem = ({ msg, msgIndex, currentChatId, onDeleteMessage }) => {
 
   const handleEditSave = () => {
     if (editContent.trim() && editContent.trim() !== msg.content) {
-      dispatch(updateMessage({ chatId: currentChatId, msgIndex, content: editContent.trim() }));
+      dispatch(
+        updateMessage({
+          chatId: currentChatId,
+          msgIndex,
+          content: editContent.trim(),
+        }),
+      );
     }
     setEditing(false);
   };
@@ -120,7 +111,10 @@ const MessageItem = ({ msg, msgIndex, currentChatId, onDeleteMessage }) => {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleEditSave(); }
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleEditSave();
+    }
     if (e.key === "Escape") handleEditCancel();
   };
 
@@ -152,10 +146,18 @@ const MessageItem = ({ msg, msgIndex, currentChatId, onDeleteMessage }) => {
               rows={1}
             />
             <div className="edit-actions">
-              <button className="edit-action-btn confirm" onClick={handleEditSave} title="Save (Enter)">
+              <button
+                className="edit-action-btn confirm"
+                onClick={handleEditSave}
+                title="Save (Enter)"
+              >
                 <Check size={13} />
               </button>
-              <button className="edit-action-btn cancel" onClick={handleEditCancel} title="Cancel (Esc)">
+              <button
+                className="edit-action-btn cancel"
+                onClick={handleEditCancel}
+                title="Cancel (Esc)"
+              >
                 <X size={13} />
               </button>
             </div>
@@ -168,12 +170,18 @@ const MessageItem = ({ msg, msgIndex, currentChatId, onDeleteMessage }) => {
                 rehypePlugins={[rehypeKatex]}
                 components={{
                   p: ({ children }) => <p className="markdown-p">{children}</p>,
-                  ul: ({ children }) => <ul className="markdown-ul">{children}</ul>,
-                  ol: ({ children }) => <ol className="markdown-ol">{children}</ol>,
+                  ul: ({ children }) => (
+                    <ul className="markdown-ul">{children}</ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="markdown-ol">{children}</ol>
+                  ),
                   code: ({ inline, className, children }) =>
-                    inline
-                      ? <code className="markdown-inline-code">{children}</code>
-                      : <CodeBlock className={className}>{children}</CodeBlock>,
+                    inline ? (
+                      <code className="markdown-inline-code">{children}</code>
+                    ) : (
+                      <CodeBlock className={className}>{children}</CodeBlock>
+                    ),
                   pre: ({ children }) => <>{children}</>,
                 }}
               >
@@ -188,7 +196,11 @@ const MessageItem = ({ msg, msgIndex, currentChatId, onDeleteMessage }) => {
         {!editing && !msg.isStreaming && hovered && (
           <div className={`msg-actions ${msg.role}`}>
             {msg.role === "user" && (
-              <button className="msg-action-btn edit" onClick={() => setEditing(true)} title="Edit message">
+              <button
+                className="msg-action-btn edit"
+                onClick={() => setEditing(true)}
+                title="Edit message"
+              >
                 <Pencil size={12} />
               </button>
             )}
@@ -196,7 +208,11 @@ const MessageItem = ({ msg, msgIndex, currentChatId, onDeleteMessage }) => {
               <button
                 className="msg-action-btn delete"
                 onClick={handleDelete}
-                title={msg.role === "user" ? "Delete this and all messages after it" : "Delete message"}
+                title={
+                  msg.role === "user"
+                    ? "Delete this and all messages after it"
+                    : "Delete message"
+                }
               >
                 <Trash2 size={12} />
               </button>
